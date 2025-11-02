@@ -7,7 +7,17 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["src/**/*.ts", "!src/**/__performance__/**", "!src/**/__data__/**", "!src/**/__mocks__/**", "!src/**/sample/**", "!src/**/test-fixtures/**", "!src/**/*.bench.ts", "!src/**/*.bench.js", "!src/**/scripts/**"]
+		"includes": [
+			"src/**/*.ts",
+			"!src/**/__performance__",
+			"!src/**/__data__",
+			"!src/**/__mocks__",
+			"!src/**/sample",
+			"!src/**/test-fixtures",
+			"!src/**/*.bench.ts",
+			"!src/**/*.bench.js",
+			"!src/**/scripts"
+		]
 	},
 	"formatter": {
 		"enabled": true,

@@ -1,481 +1,534 @@
-import { readConfig } from '../config/config'
-import type { Configuration, FileSystem } from '../interfaces'
-import type { Notifier } from '../interfaces/notifier'
-import type { StatusBar } from '../interfaces/statusBar'
-import type { Telemetry } from '../interfaces/telemetry'
-import type { DotenvFile, ParseError, ParseResult, SyncReport } from '../types'
-import { compareFiles } from './comparator'
-import { detectFileType, parseDotenvFile, shouldExcludeFile } from './parser'
+import { readConfig } from '../config/config';
+import type { Configuration, FileSystem } from '../interfaces';
+import type { Notifier } from '../interfaces/notifier';
+import type { StatusBar } from '../interfaces/statusBar';
+import type { Telemetry } from '../interfaces/telemetry';
+import type { DotenvFile, ParseError, ParseResult, SyncReport } from '../types';
+import { compareFiles } from './comparator';
+import { detectFileType, parseDotenvFile, shouldExcludeFile } from './parser';
 
 export interface Detector {
-  checkSync(): Promise<SyncReport>
-  checkSyncForFiles(filePaths: readonly string[]): Promise<SyncReport>
-  dispose(): void
+	checkSync(): Promise<SyncReport>;
+	checkSyncForFiles(filePaths: readonly string[]): Promise<SyncReport>;
+	dispose(): void;
 }
 
 export function createDetector(
-  deps: Readonly<{
-    telemetry: Telemetry
-    notifier: Notifier
-    statusBar: StatusBar
-    configuration: Configuration
-    fileSystem: FileSystem
-  }>,
+	deps: Readonly<{
+		telemetry: Telemetry;
+		notifier: Notifier;
+		statusBar: StatusBar;
+		configuration: Configuration;
+		fileSystem: FileSystem;
+	}>,
 ): Detector {
-  const { telemetry, notifier, statusBar, configuration, fileSystem } = deps
+	const { telemetry, notifier, statusBar, configuration, fileSystem } = deps;
 
-  async function checkSync(): Promise<SyncReport> {
-    const config = readConfig(configuration)
+	async function checkSync(): Promise<SyncReport> {
+		const config = readConfig(configuration);
 
-    if (!config.enabled) {
-      return createDisabledReport()
-    }
+		if (!config.enabled) {
+			return createDisabledReport();
+		}
 
-    try {
-      return await performSyncCheck(config)
-    } catch (error) {
-      return handleSyncCheckError(error, config)
-    }
-  }
+		try {
+			return await performSyncCheck(config);
+		} catch (error) {
+			return handleSyncCheckError(error, config);
+		}
+	}
 
-  async function performSyncCheck(config: ReturnType<typeof readConfig>): Promise<SyncReport> {
-    const { files, errors } = await discoverDotenvFiles(
-      fileSystem,
-      config.watchPatterns,
-      config.excludePatterns,
-      config,
-    )
+	async function performSyncCheck(
+		config: ReturnType<typeof readConfig>,
+	): Promise<SyncReport> {
+		const { files, errors } = await discoverDotenvFiles(
+			fileSystem,
+			config.watchPatterns,
+			config.excludePatterns,
+			config,
+		);
 
-    const compareOptions = buildCompareOptions(files, config)
-    const report = compareFiles(files, compareOptions)
-    const finalReport = { ...report, errors: Object.freeze(errors) }
+		const compareOptions = buildCompareOptions(files, config);
+		const report = compareFiles(files, compareOptions);
+		const finalReport = { ...report, errors: Object.freeze(errors) };
 
-    updateUI(finalReport)
-    notifyUser(finalReport, errors, config)
-    trackTelemetry(finalReport, files)
+		updateUI(finalReport);
+		notifyUser(finalReport, errors, config);
+		trackTelemetry(finalReport, files);
 
-    return finalReport
-  }
+		return finalReport;
+	}
 
-  function buildCompareOptions(
-    files: DotenvFile[],
-    config: ReturnType<typeof readConfig>,
-  ): { mode: 'auto' | 'template'; templatePath?: string } {
-    const isTemplateMode = config.comparisonMode === 'template'
+	function buildCompareOptions(
+		files: DotenvFile[],
+		config: ReturnType<typeof readConfig>,
+	): { mode: 'auto' | 'template'; templatePath?: string } {
+		const isTemplateMode = config.comparisonMode === 'template';
 
-    if (!isTemplateMode || !config.templateFile) {
-      return { mode: 'auto' }
-    }
+		if (!isTemplateMode || !config.templateFile) {
+			return { mode: 'auto' };
+		}
 
-    const templatePath = findTemplatePath(files, config.templateFile)
+		const templatePath = findTemplatePath(files, config.templateFile);
 
-    if (templatePath) {
-      return {
-        mode: 'template',
-        templatePath,
-      }
-    }
+		if (templatePath) {
+			return {
+				mode: 'template',
+				templatePath,
+			};
+		}
 
-    return {
-      mode: 'template',
-    }
-  }
+		return {
+			mode: 'template',
+		};
+	}
 
-  function findTemplatePath(files: DotenvFile[], templateFile: string): string | undefined {
-    const template = files.find((file) => fileSystem.asRelativePath(file.path) === templateFile)
-    return template?.path
-  }
+	function findTemplatePath(
+		files: DotenvFile[],
+		templateFile: string,
+	): string | undefined {
+		const template = files.find(
+			(file) => fileSystem.asRelativePath(file.path) === templateFile,
+		);
+		return template?.path;
+	}
 
-  function updateUI(report: SyncReport): void {
-    const issueCount = report.missingKeys.length + report.extraKeys.length
-    statusBar.updateStatus(report.status, issueCount)
-  }
+	function updateUI(report: SyncReport): void {
+		const issueCount = report.missingKeys.length + report.extraKeys.length;
+		statusBar.updateStatus(report.status, issueCount);
+	}
 
-  function notifyUser(
-    report: SyncReport,
-    errors: ParseError[],
-    config: ReturnType<typeof readConfig>,
-  ): void {
-    if (config.notificationLevel === 'silent') {
-      return
-    }
+	function notifyUser(
+		report: SyncReport,
+		errors: ParseError[],
+		config: ReturnType<typeof readConfig>,
+	): void {
+		if (config.notificationLevel === 'silent') {
+			return;
+		}
 
-    notifyMissingKeys(report)
-    notifyParseErrors(errors)
-  }
+		notifyMissingKeys(report);
+		notifyParseErrors(errors);
+	}
 
-  function notifyMissingKeys(report: SyncReport): void {
-    if (report.status !== 'missing-keys') {
-      return
-    }
+	function notifyMissingKeys(report: SyncReport): void {
+		if (report.status !== 'missing-keys') {
+			return;
+		}
 
-    for (const mismatch of report.missingKeys) {
-      notifier.showMissingKeys(mismatch.filepath, mismatch.keys)
-    }
-  }
+		for (const mismatch of report.missingKeys) {
+			notifier.showMissingKeys(mismatch.filepath, mismatch.keys);
+		}
+	}
 
-  function notifyParseErrors(errors: ParseError[]): void {
-    if (errors.length === 0) {
-      return
-    }
+	function notifyParseErrors(errors: ParseError[]): void {
+		if (errors.length === 0) {
+			return;
+		}
 
-    const MAX_ERRORS_TO_SHOW = 3
-    const errorsToShow = errors.slice(0, MAX_ERRORS_TO_SHOW)
+		const MAX_ERRORS_TO_SHOW = 3;
+		const errorsToShow = errors.slice(0, MAX_ERRORS_TO_SHOW);
 
-    for (const error of errorsToShow) {
-      const sanitizedMessage = sanitizeParseMessage(error.message)
-      notifier.showParseError(error.filepath, sanitizedMessage)
-    }
-  }
+		for (const error of errorsToShow) {
+			const sanitizedMessage = sanitizeParseMessage(error.message);
+			notifier.showParseError(error.filepath, sanitizedMessage);
+		}
+	}
 
-  function trackTelemetry(report: SyncReport, files: DotenvFile[]): void {
-    telemetry.event('sync-check', {
-      status: report.status,
-      fileCount: String(files.length),
-      missingKeyCount: String(report.missingKeys.length),
-    })
-  }
+	function trackTelemetry(report: SyncReport, files: DotenvFile[]): void {
+		telemetry.event('sync-check', {
+			status: report.status,
+			fileCount: String(files.length),
+			missingKeyCount: String(report.missingKeys.length),
+		});
+	}
 
-  function handleSyncCheckError(error: unknown, config: ReturnType<typeof readConfig>): SyncReport {
-    const errorReport = createErrorReport(error)
+	function handleSyncCheckError(
+		error: unknown,
+		config: ReturnType<typeof readConfig>,
+	): SyncReport {
+		const errorReport = createErrorReport(error);
 
-    statusBar.updateStatus('parse-error', 0)
+		statusBar.updateStatus('parse-error', 0);
 
-    if (config.notificationLevel !== 'silent') {
-      notifier.showError(`Failed to check dotenv sync: ${(error as Error).message}`)
-    }
+		if (config.notificationLevel !== 'silent') {
+			notifier.showError(
+				`Failed to check dotenv sync: ${(error as Error).message}`,
+			);
+		}
 
-    return errorReport
-  }
+		return errorReport;
+	}
 
-  function createDisabledReport(): SyncReport {
-    return {
-      status: 'no-files',
-      files: Object.freeze([]),
-      missingKeys: Object.freeze([]),
-      extraKeys: Object.freeze([]),
-      errors: Object.freeze([]),
-      lastChecked: Date.now(),
-    }
-  }
+	function createDisabledReport(): SyncReport {
+		return {
+			status: 'no-files',
+			files: Object.freeze([]),
+			missingKeys: Object.freeze([]),
+			extraKeys: Object.freeze([]),
+			errors: Object.freeze([]),
+			lastChecked: Date.now(),
+		};
+	}
 
-  function createErrorReport(error: unknown): SyncReport {
-    return {
-      status: 'parse-error',
-      files: Object.freeze([]),
-      missingKeys: Object.freeze([]),
-      extraKeys: Object.freeze([]),
-      errors: Object.freeze([
-        {
-          type: 'read-error',
-          message: `Failed to check sync: ${(error as Error).message}`,
-          filepath: 'workspace',
-        },
-      ]),
-      lastChecked: Date.now(),
-    }
-  }
+	function createErrorReport(error: unknown): SyncReport {
+		return {
+			status: 'parse-error',
+			files: Object.freeze([]),
+			missingKeys: Object.freeze([]),
+			extraKeys: Object.freeze([]),
+			errors: Object.freeze([
+				{
+					type: 'read-error',
+					message: `Failed to check sync: ${(error as Error).message}`,
+					filepath: 'workspace',
+				},
+			]),
+			lastChecked: Date.now(),
+		};
+	}
 
-  async function checkSyncForFiles(filePaths: readonly string[]): Promise<SyncReport> {
-    try {
-      return await performSyncCheckForFiles(filePaths)
-    } catch (error) {
-      return handleSyncCheckForFilesError(error)
-    }
-  }
+	async function checkSyncForFiles(
+		filePaths: readonly string[],
+	): Promise<SyncReport> {
+		try {
+			return await performSyncCheckForFiles(filePaths);
+		} catch (error) {
+			return handleSyncCheckForFilesError(error);
+		}
+	}
 
-  async function performSyncCheckForFiles(filePaths: readonly string[]): Promise<SyncReport> {
-    const { files, errors } = await loadSpecificFiles(fileSystem, filePaths)
-    const config = readConfig(configuration)
+	async function performSyncCheckForFiles(
+		filePaths: readonly string[],
+	): Promise<SyncReport> {
+		const { files, errors } = await loadSpecificFiles(fileSystem, filePaths);
+		const config = readConfig(configuration);
 
-    const compareOptions = buildCompareOptions(files, config)
-    const report = compareFiles(files, compareOptions)
-    const finalReport = { ...report, errors: Object.freeze(errors) }
+		const compareOptions = buildCompareOptions(files, config);
+		const report = compareFiles(files, compareOptions);
+		const finalReport = { ...report, errors: Object.freeze(errors) };
 
-    updateUI(finalReport)
-    notifyUser(finalReport, errors, config)
-    trackSelectedFilesTelemetry(finalReport, files)
+		updateUI(finalReport);
+		notifyUser(finalReport, errors, config);
+		trackSelectedFilesTelemetry(finalReport, files);
 
-    return finalReport
-  }
+		return finalReport;
+	}
 
-  function trackSelectedFilesTelemetry(report: SyncReport, files: DotenvFile[]): void {
-    telemetry.event('sync-check-selected', {
-      status: report.status,
-      fileCount: String(files.length),
-      missingKeyCount: String(report.missingKeys.length),
-    })
-  }
+	function trackSelectedFilesTelemetry(
+		report: SyncReport,
+		files: DotenvFile[],
+	): void {
+		telemetry.event('sync-check-selected', {
+			status: report.status,
+			fileCount: String(files.length),
+			missingKeyCount: String(report.missingKeys.length),
+		});
+	}
 
-  function handleSyncCheckForFilesError(error: unknown): SyncReport {
-    const errorReport = createSelectedFilesErrorReport(error)
+	function handleSyncCheckForFilesError(error: unknown): SyncReport {
+		const errorReport = createSelectedFilesErrorReport(error);
 
-    statusBar.updateStatus('parse-error', 0)
+		statusBar.updateStatus('parse-error', 0);
 
-    const config = readConfig(configuration)
-    if (config.notificationLevel !== 'silent') {
-      notifier.showError(`Failed to check selected files: ${(error as Error).message}`)
-    }
+		const config = readConfig(configuration);
+		if (config.notificationLevel !== 'silent') {
+			notifier.showError(
+				`Failed to check selected files: ${(error as Error).message}`,
+			);
+		}
 
-    return errorReport
-  }
+		return errorReport;
+	}
 
-  function createSelectedFilesErrorReport(error: unknown): SyncReport {
-    return {
-      status: 'parse-error',
-      files: Object.freeze([]),
-      missingKeys: Object.freeze([]),
-      extraKeys: Object.freeze([]),
-      errors: Object.freeze([
-        {
-          type: 'read-error',
-          message: `Failed to check selected files: ${(error as Error).message}`,
-          filepath: 'selected-files',
-        },
-      ]),
-      lastChecked: Date.now(),
-    }
-  }
+	function createSelectedFilesErrorReport(error: unknown): SyncReport {
+		return {
+			status: 'parse-error',
+			files: Object.freeze([]),
+			missingKeys: Object.freeze([]),
+			extraKeys: Object.freeze([]),
+			errors: Object.freeze([
+				{
+					type: 'read-error',
+					message: `Failed to check selected files: ${(error as Error).message}`,
+					filepath: 'selected-files',
+				},
+			]),
+			lastChecked: Date.now(),
+		};
+	}
 
-  function dispose(): void {
-    // Cleanup if needed
-  }
+	function dispose(): void {
+		// Cleanup if needed
+	}
 
-  return Object.freeze({
-    checkSync,
-    checkSyncForFiles,
-    dispose,
-  })
+	return Object.freeze({
+		checkSync,
+		checkSyncForFiles,
+		dispose,
+	});
 }
 
 async function discoverDotenvFiles(
-  fileSystem: FileSystem,
-  watchPatterns: readonly string[],
-  excludePatterns: readonly string[],
-  config: ReturnType<typeof readConfig>,
+	fileSystem: FileSystem,
+	watchPatterns: readonly string[],
+	excludePatterns: readonly string[],
+	config: ReturnType<typeof readConfig>,
 ): Promise<{ files: DotenvFile[]; errors: ParseError[] }> {
-  const files: DotenvFile[] = []
-  const errors: ParseError[] = []
+	const files: DotenvFile[] = [];
+	const errors: ParseError[] = [];
 
-  const MAX_ERRORS = 50
+	const MAX_ERRORS = 50;
 
-  for (const pattern of watchPatterns) {
-    if (hasExceededErrorLimit(errors, MAX_ERRORS)) {
-      errors.push(createErrorLimitExceededError())
-      break
-    }
+	for (const pattern of watchPatterns) {
+		if (hasExceededErrorLimit(errors, MAX_ERRORS)) {
+			errors.push(createErrorLimitExceededError());
+			break;
+		}
 
-    await processPattern(pattern, fileSystem, excludePatterns, config, files, errors)
-  }
+		await processPattern(
+			pattern,
+			fileSystem,
+			excludePatterns,
+			config,
+			files,
+			errors,
+		);
+	}
 
-  const filteredFiles = applyComparisonModeFilter(fileSystem, files, config)
-  return { files: filteredFiles, errors }
+	const filteredFiles = applyComparisonModeFilter(fileSystem, files, config);
+	return { files: filteredFiles, errors };
 }
 
-function hasExceededErrorLimit(errors: ParseError[], maxErrors: number): boolean {
-  return errors.length > maxErrors
+function hasExceededErrorLimit(
+	errors: ParseError[],
+	maxErrors: number,
+): boolean {
+	return errors.length > maxErrors;
 }
 
 function createErrorLimitExceededError(): ParseError {
-  return {
-    type: 'read-error',
-    message: 'Too many parse errors detected. Check workspace configuration.',
-    filepath: 'workspace',
-  }
+	return {
+		type: 'read-error',
+		message: 'Too many parse errors detected. Check workspace configuration.',
+		filepath: 'workspace',
+	};
 }
 
 async function processPattern(
-  pattern: string,
-  fileSystem: FileSystem,
-  excludePatterns: readonly string[],
-  config: ReturnType<typeof readConfig>,
-  files: DotenvFile[],
-  errors: ParseError[],
+	pattern: string,
+	fileSystem: FileSystem,
+	excludePatterns: readonly string[],
+	config: ReturnType<typeof readConfig>,
+	files: DotenvFile[],
+	errors: ParseError[],
 ): Promise<void> {
-  try {
-    const fileInfos = await fileSystem.findFiles(pattern, null, 100)
-    await processFileInfos(fileInfos, fileSystem, excludePatterns, config, files, errors)
-  } catch (error) {
-    errors.push(createPatternSearchError(pattern, error))
-  }
+	try {
+		const fileInfos = await fileSystem.findFiles(pattern, null, 100);
+		await processFileInfos(
+			fileInfos,
+			fileSystem,
+			excludePatterns,
+			config,
+			files,
+			errors,
+		);
+	} catch (error) {
+		errors.push(createPatternSearchError(pattern, error));
+	}
 }
 
 function createPatternSearchError(pattern: string, error: unknown): ParseError {
-  return {
-    type: 'read-error',
-    message: `Failed to search pattern ${pattern}: ${(error as Error).message}`,
-    filepath: 'pattern-search',
-  }
+	return {
+		type: 'read-error',
+		message: `Failed to search pattern ${pattern}: ${(error as Error).message}`,
+		filepath: 'pattern-search',
+	};
 }
 
 async function processFileInfos(
-  fileInfos: Array<{ filepath: string; uri: string }>,
-  fileSystem: FileSystem,
-  excludePatterns: readonly string[],
-  config: ReturnType<typeof readConfig>,
-  files: DotenvFile[],
-  errors: ParseError[],
+	fileInfos: Array<{ filepath: string; uri: string }>,
+	fileSystem: FileSystem,
+	excludePatterns: readonly string[],
+	config: ReturnType<typeof readConfig>,
+	files: DotenvFile[],
+	errors: ParseError[],
 ): Promise<void> {
-  for (const info of fileInfos) {
-    await processFileInfo(info, fileSystem, excludePatterns, config, files, errors)
-  }
+	for (const info of fileInfos) {
+		await processFileInfo(
+			info,
+			fileSystem,
+			excludePatterns,
+			config,
+			files,
+			errors,
+		);
+	}
 }
 
 async function processFileInfo(
-  info: { filepath: string; uri: string },
-  fileSystem: FileSystem,
-  excludePatterns: readonly string[],
-  config: ReturnType<typeof readConfig>,
-  files: DotenvFile[],
-  errors: ParseError[],
+	info: { filepath: string; uri: string },
+	fileSystem: FileSystem,
+	excludePatterns: readonly string[],
+	config: ReturnType<typeof readConfig>,
+	files: DotenvFile[],
+	errors: ParseError[],
 ): Promise<void> {
-  const filepath = info.filepath
-  const relativePath = fileSystem.asRelativePath(filepath)
+	const filepath = info.filepath;
+	const relativePath = fileSystem.asRelativePath(filepath);
 
-  if (shouldSkipFile(relativePath, excludePatterns, config)) {
-    return
-  }
+	if (shouldSkipFile(relativePath, excludePatterns, config)) {
+		return;
+	}
 
-  await parseAndAddFile(filepath, fileSystem, files, errors)
+	await parseAndAddFile(filepath, fileSystem, files, errors);
 }
 
 function shouldSkipFile(
-  relativePath: string,
-  excludePatterns: readonly string[],
-  config: ReturnType<typeof readConfig>,
+	relativePath: string,
+	excludePatterns: readonly string[],
+	config: ReturnType<typeof readConfig>,
 ): boolean {
-  if (shouldExcludeFile(relativePath, excludePatterns)) {
-    return true
-  }
+	if (shouldExcludeFile(relativePath, excludePatterns)) {
+		return true;
+	}
 
-  if (isTemporarilyIgnored(relativePath, config)) {
-    return true
-  }
+	if (isTemporarilyIgnored(relativePath, config)) {
+		return true;
+	}
 
-  return false
+	return false;
 }
 
 function isTemporarilyIgnored(
-  relativePath: string,
-  config: ReturnType<typeof readConfig>,
+	relativePath: string,
+	config: ReturnType<typeof readConfig>,
 ): boolean {
-  return config.temporaryIgnore.includes(relativePath)
+	return config.temporaryIgnore.includes(relativePath);
 }
 
 async function parseAndAddFile(
-  filepath: string,
-  fileSystem: FileSystem,
-  files: DotenvFile[],
-  errors: ParseError[],
+	filepath: string,
+	fileSystem: FileSystem,
+	files: DotenvFile[],
+	errors: ParseError[],
 ): Promise<void> {
-  try {
-    const text = await fileSystem.readFile(filepath)
-    const parseResult = parseDotenvFile(text, filepath)
+	try {
+		const text = await fileSystem.readFile(filepath);
+		const parseResult = parseDotenvFile(text, filepath);
 
-    if (parseResult.errors.length > 0) {
-      errors.push(...parseResult.errors)
-    }
+		if (parseResult.errors.length > 0) {
+			errors.push(...parseResult.errors);
+		}
 
-    if (parseResult.success) {
-      const dotenvFile = await createDotenvFile(filepath, parseResult, fileSystem)
-      files.push(dotenvFile)
-    }
-  } catch (error) {
-    errors.push(createFileReadError(filepath, error))
-  }
+		if (parseResult.success) {
+			const dotenvFile = await createDotenvFile(
+				filepath,
+				parseResult,
+				fileSystem,
+			);
+			files.push(dotenvFile);
+		}
+	} catch (error) {
+		errors.push(createFileReadError(filepath, error));
+	}
 }
 
 async function createDotenvFile(
-  filepath: string,
-  parseResult: ParseResult,
-  fileSystem: FileSystem,
+	filepath: string,
+	parseResult: ParseResult,
+	fileSystem: FileSystem,
 ): Promise<DotenvFile> {
-  const stat = await fileSystem.getFileStats(filepath)
+	const stat = await fileSystem.getFileStats(filepath);
 
-  return {
-    path: filepath,
-    type: detectFileType(filepath),
-    keys: parseResult.keys,
-    lastModified: stat.mtime.getTime(),
-  }
+	return {
+		path: filepath,
+		type: detectFileType(filepath),
+		keys: parseResult.keys,
+		lastModified: stat.mtime.getTime(),
+	};
 }
 
 function createFileReadError(filepath: string, error: unknown): ParseError {
-  return {
-    type: 'read-error',
-    message: (error as Error).message,
-    filepath,
-  }
+	return {
+		type: 'read-error',
+		message: (error as Error).message,
+		filepath,
+	};
 }
 
 async function loadSpecificFiles(
-  fileSystem: FileSystem,
-  filePaths: readonly string[],
+	fileSystem: FileSystem,
+	filePaths: readonly string[],
 ): Promise<{ files: DotenvFile[]; errors: ParseError[] }> {
-  const files: DotenvFile[] = []
-  const errors: ParseError[] = []
+	const files: DotenvFile[] = [];
+	const errors: ParseError[] = [];
 
-  for (const filepath of filePaths) {
-    await loadSpecificFile(filepath, fileSystem, files, errors)
-  }
+	for (const filepath of filePaths) {
+		await loadSpecificFile(filepath, fileSystem, files, errors);
+	}
 
-  return { files, errors }
+	return { files, errors };
 }
 
 async function loadSpecificFile(
-  filepath: string,
-  fileSystem: FileSystem,
-  files: DotenvFile[],
-  errors: ParseError[],
+	filepath: string,
+	fileSystem: FileSystem,
+	files: DotenvFile[],
+	errors: ParseError[],
 ): Promise<void> {
-  try {
-    const text = await fileSystem.readFile(filepath)
-    const parseResult = parseDotenvFile(text, filepath)
+	try {
+		const text = await fileSystem.readFile(filepath);
+		const parseResult = parseDotenvFile(text, filepath);
 
-    if (parseResult.success) {
-      const dotenvFile = await createDotenvFile(filepath, parseResult, fileSystem)
-      files.push(dotenvFile)
-    } else {
-      errors.push(...parseResult.errors)
-    }
-  } catch (error) {
-    errors.push(createFileReadError(filepath, error))
-  }
+		if (parseResult.success) {
+			const dotenvFile = await createDotenvFile(
+				filepath,
+				parseResult,
+				fileSystem,
+			);
+			files.push(dotenvFile);
+		} else {
+			errors.push(...parseResult.errors);
+		}
+	} catch (error) {
+		errors.push(createFileReadError(filepath, error));
+	}
 }
 
 function applyComparisonModeFilter(
-  fileSystem: FileSystem,
-  files: DotenvFile[],
-  config: ReturnType<typeof readConfig>,
+	fileSystem: FileSystem,
+	files: DotenvFile[],
+	config: ReturnType<typeof readConfig>,
 ): DotenvFile[] {
-  if (config.comparisonMode === 'manual') {
-    return filterManualModeFiles(fileSystem, files, config)
-  }
+	if (config.comparisonMode === 'manual') {
+		return filterManualModeFiles(fileSystem, files, config);
+	}
 
-  return files
+	return files;
 }
 
 function filterManualModeFiles(
-  fileSystem: FileSystem,
-  files: DotenvFile[],
-  config: ReturnType<typeof readConfig>,
+	fileSystem: FileSystem,
+	files: DotenvFile[],
+	config: ReturnType<typeof readConfig>,
 ): DotenvFile[] {
-  if (config.compareOnlyFiles.length === 0) {
-    return files
-  }
+	if (config.compareOnlyFiles.length === 0) {
+		return files;
+	}
 
-  return files.filter((file) => isFileInCompareList(file, fileSystem, config))
+	return files.filter((file) => isFileInCompareList(file, fileSystem, config));
 }
 
 function isFileInCompareList(
-  file: DotenvFile,
-  fileSystem: FileSystem,
-  config: ReturnType<typeof readConfig>,
+	file: DotenvFile,
+	fileSystem: FileSystem,
+	config: ReturnType<typeof readConfig>,
 ): boolean {
-  const relativePath = fileSystem.asRelativePath(file.path)
-  return config.compareOnlyFiles.includes(relativePath)
+	const relativePath = fileSystem.asRelativePath(file.path);
+	return config.compareOnlyFiles.includes(relativePath);
 }
 
 function sanitizeParseMessage(message: string): string {
-  return message.replace(/^Failed to parse[^:]*:\s*/, '')
+	return message.replace(/^Failed to parse[^:]*:\s*/, '');
 }

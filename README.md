@@ -246,7 +246,7 @@ Monitor for configuration changes across different environments and alert when i
 
 ## ⚡ Performance
 
-EnvSync-LE is optimized for workspace monitoring:
+EnvSync-LE is optimized for workspace monitoring. For detailed information, see [Performance Monitoring](docs/PERFORMANCE.md).
 
 | Operation           | Performance   | File Count Range | Hardware Tested  |
 | ------------------- | ------------- | ---------------- | ---------------- |
@@ -335,14 +335,24 @@ A: Enable `envsync-le.ignoreComments: true` to ignore lines starting with `#` wh
 **Q: What's the largest workspace supported?**
 A: EnvSync-LE can monitor up to 10,000 .env files efficiently. For larger workspaces, consider using exclude patterns to limit the scope.
 
-## 📊 Test Coverage
+## 📊 Testing
+
+**45 unit tests** • **97.65% function coverage, 95.08% line coverage**  
+Powered by Vitest • Run with `bun run test:coverage`
+
+### Core Principle
+
+**No broken or failed tests are allowed in commits.** All tests must pass before code can be committed or merged.
+
+### Test Coverage
 
 - 45 passing unit tests across 5 test suites
-- **97.65% function coverage, 95.08% line coverage**
 - Tests powered by Vitest with V8 coverage
 - Runs quickly and locally: `bun test` or `bun test --coverage`
 - Coverage reports output to `coverage/` (HTML summary at `coverage/index.html`)
 - Core logic is designed for unit testing; additional suites will expand over time
+
+For detailed testing guidelines, see [Testing Guidelines](docs/TESTING.md).
 
 ---
 
