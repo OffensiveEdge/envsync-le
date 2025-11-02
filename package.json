@@ -1,6 +1,6 @@
 {
 	"name": "envsync-le",
-	"publisher": "nolindnaidoo",
+	"publisher": "OffensiveEdge",
 	"displayName": "EnvSync-LE",
 	"description": "Zero Hassle .env Sync- Effortlessly detect, compare, and synchronize .env files across your workspace with visual diff.",
 	"version": "1.8.1",
