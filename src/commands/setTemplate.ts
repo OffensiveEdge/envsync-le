@@ -1,10 +1,7 @@
 import * as vscode from 'vscode';
-import * as nls from 'vscode-nls';
 import type { Detector } from '../detection/detector';
 import type { Configuration, FileSystem, UserInterface } from '../interfaces';
 import type { Telemetry } from '../interfaces/telemetry';
-
-const localize = nls.config({ messageFormat: nls.MessageFormat.file })();
 
 export function registerSetTemplateCommand(
 	context: vscode.ExtensionContext,
@@ -30,12 +27,7 @@ export function registerSetTemplateCommand(
 					// No file context - let user pick
 					const allEnvFiles = await fileSystem.findFiles('**/.env*', null, 50);
 					if (allEnvFiles.length === 0) {
-						ui.showInformationMessage(
-							localize(
-								'runtime.message.no-env-files',
-								'No .env files found in workspace',
-							),
-						);
+						ui.showInformationMessage('No .env files found in workspace');
 						return;
 					}
 
@@ -46,10 +38,7 @@ export function registerSetTemplateCommand(
 					}));
 
 					const selected = await ui.showQuickPick(picks, {
-						placeHolder: localize(
-							'runtime.picker.select-template',
-							'Select .env file to use as template',
-						),
+						placeHolder: 'Select .env file to use as template',
 					});
 
 					if (!selected) return;
@@ -59,12 +48,7 @@ export function registerSetTemplateCommand(
 				// Validate it's an .env file
 				const filename = templateFile.fsPath.split('/').pop() ?? '';
 				if (!filename.startsWith('.env')) {
-					ui.showWarningMessage(
-						localize(
-							'runtime.message.not-env-file',
-							'Please select a .env file',
-						),
-					);
+					ui.showWarningMessage('Please select a .env file');
 					return;
 				}
 
@@ -88,19 +72,11 @@ export function registerSetTemplateCommand(
 					await detector.checkSync();
 
 					ui.showInformationMessage(
-						localize(
-							'runtime.message.template-set',
-							'Set {0} as template. All .env files will be compared against it.',
-							relativePath,
-						),
+						`Set ${relativePath} as template. All .env files will be compared against it.`,
 					);
 				} catch (error) {
 					ui.showErrorMessage(
-						localize(
-							'runtime.message.template-failed',
-							'Failed to set template: {0}',
-							(error as Error).message,
-						),
+						`Failed to set template: ${(error as Error).message}`,
 					);
 				}
 			},
@@ -128,18 +104,11 @@ export function registerSetTemplateCommand(
 				await detector.checkSync();
 
 				ui.showInformationMessage(
-					localize(
-						'runtime.message.template-cleared',
-						'Cleared template. Returned to automatic comparison.',
-					),
+					'Cleared template. Returned to automatic comparison.',
 				);
 			} catch (error) {
 				ui.showErrorMessage(
-					localize(
-						'runtime.message.clear-template-failed',
-						'Failed to clear template: {0}',
-						(error as Error).message,
-					),
+					`Failed to clear template: ${(error as Error).message}`,
 				);
 			}
 		}),

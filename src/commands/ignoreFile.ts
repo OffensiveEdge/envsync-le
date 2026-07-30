@@ -1,11 +1,8 @@
 import * as vscode from 'vscode';
-import * as nls from 'vscode-nls';
 import { readConfig } from '../config/config';
 import type { Detector } from '../detection/detector';
 import type { Configuration, FileSystem, UserInterface } from '../interfaces';
 import type { Telemetry } from '../interfaces/telemetry';
-
-const localize = nls.config({ messageFormat: nls.MessageFormat.file })();
 
 export function registerIgnoreFileCommand(
 	context: vscode.ExtensionContext,
@@ -31,12 +28,7 @@ export function registerIgnoreFileCommand(
 					// No file context - let user pick
 					const allEnvFiles = await fileSystem.findFiles('**/.env*', null, 50);
 					if (allEnvFiles.length === 0) {
-						ui.showInformationMessage(
-							localize(
-								'runtime.message.no-env-files',
-								'No .env files found in workspace',
-							),
-						);
+						ui.showInformationMessage('No .env files found in workspace');
 						return;
 					}
 
@@ -47,10 +39,7 @@ export function registerIgnoreFileCommand(
 					}));
 
 					const selected = await ui.showQuickPick(picks, {
-						placeHolder: localize(
-							'runtime.picker.select-ignore',
-							'Select .env file to ignore',
-						),
+						placeHolder: 'Select .env file to ignore',
 					});
 
 					if (!selected) return;
@@ -60,12 +49,7 @@ export function registerIgnoreFileCommand(
 				// Validate it's an .env file
 				const filename = targetFile.fsPath.split('/').pop() ?? '';
 				if (!filename.startsWith('.env')) {
-					ui.showWarningMessage(
-						localize(
-							'runtime.message.not-env-file',
-							'Please select a .env file',
-						),
-					);
+					ui.showWarningMessage('Please select a .env file');
 					return;
 				}
 
@@ -76,11 +60,7 @@ export function registerIgnoreFileCommand(
 
 					if (currentIgnored.includes(relativePath)) {
 						ui.showInformationMessage(
-							localize(
-								'runtime.message.already-ignored',
-								'{0} is already being ignored',
-								relativePath,
-							),
+							`${relativePath} is already being ignored`,
 						);
 						return;
 					}
@@ -97,19 +77,11 @@ export function registerIgnoreFileCommand(
 					await detector.checkSync();
 
 					ui.showInformationMessage(
-						localize(
-							'runtime.message.file-ignored',
-							'Temporarily ignoring {0}. Use "Stop Ignoring" to re-enable.',
-							relativePath,
-						),
+						`Temporarily ignoring ${relativePath}. Use "Stop Ignoring" to re-enable.`,
 					);
 				} catch (error) {
 					ui.showErrorMessage(
-						localize(
-							'runtime.message.ignore-failed',
-							'Failed to ignore file: {0}',
-							(error as Error).message,
-						),
+						`Failed to ignore file: ${(error as Error).message}`,
 					);
 				}
 			},
@@ -127,12 +99,7 @@ export function registerIgnoreFileCommand(
 				const currentIgnored = readConfig(configuration).temporaryIgnore;
 
 				if (currentIgnored.length === 0) {
-					ui.showInformationMessage(
-						localize(
-							'runtime.message.no-ignored-files',
-							'No files are currently being ignored',
-						),
-					);
+					ui.showInformationMessage('No files are currently being ignored');
 					return;
 				}
 
@@ -149,10 +116,7 @@ export function registerIgnoreFileCommand(
 					}));
 
 					const selected = await ui.showQuickPick(picks, {
-						placeHolder: localize(
-							'runtime.picker.select-unignore',
-							'Select file to stop ignoring',
-						),
+						placeHolder: 'Select file to stop ignoring',
 					});
 
 					if (!selected) return;
@@ -161,11 +125,7 @@ export function registerIgnoreFileCommand(
 
 				if (!currentIgnored.includes(targetPath)) {
 					ui.showInformationMessage(
-						localize(
-							'runtime.message.not-ignored',
-							'{0} is not currently being ignored',
-							targetPath,
-						),
+						`${targetPath} is not currently being ignored`,
 					);
 					return;
 				}
@@ -184,20 +144,10 @@ export function registerIgnoreFileCommand(
 					// Trigger immediate comparison
 					await detector.checkSync();
 
-					ui.showInformationMessage(
-						localize(
-							'runtime.message.file-unignored',
-							'No longer ignoring {0}',
-							targetPath,
-						),
-					);
+					ui.showInformationMessage(`No longer ignoring ${targetPath}`);
 				} catch (error) {
 					ui.showErrorMessage(
-						localize(
-							'runtime.message.unignore-failed',
-							'Failed to stop ignoring file: {0}',
-							(error as Error).message,
-						),
+						`Failed to stop ignoring file: ${(error as Error).message}`,
 					);
 				}
 			},
@@ -212,23 +162,14 @@ export function registerIgnoreFileCommand(
 			const currentIgnored = readConfig(configuration).temporaryIgnore;
 
 			if (currentIgnored.length === 0) {
-				ui.showInformationMessage(
-					localize(
-						'runtime.message.no-ignored-files',
-						'No files are currently being ignored',
-					),
-				);
+				ui.showInformationMessage('No files are currently being ignored');
 				return;
 			}
 
 			const confirmed = await ui.showWarningMessage(
-				localize(
-					'runtime.message.confirm-clear-ignored',
-					'Stop ignoring all {0} files?',
-					currentIgnored.length,
-				),
-				localize('runtime.action.yes', 'Yes'),
-				localize('runtime.action.no', 'No'),
+				`Stop ignoring all ${currentIgnored.length} files?`,
+				'Yes',
+				'No',
 			);
 
 			if (confirmed !== 'Yes') return;
@@ -244,18 +185,11 @@ export function registerIgnoreFileCommand(
 				await detector.checkSync();
 
 				ui.showInformationMessage(
-					localize(
-						'runtime.message.all-ignored-cleared',
-						'Cleared ignore list. All .env files will be checked again.',
-					),
+					'Cleared ignore list. All .env files will be checked again.',
 				);
 			} catch (error) {
 				ui.showErrorMessage(
-					localize(
-						'runtime.message.clear-ignored-failed',
-						'Failed to clear ignore list: {0}',
-						(error as Error).message,
-					),
+					`Failed to clear ignore list: ${(error as Error).message}`,
 				);
 			}
 		}),

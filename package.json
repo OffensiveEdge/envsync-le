@@ -44,7 +44,6 @@
 	],
 	"icon": "src/assets/images/icon.png",
 	"main": "./dist/extension.js",
-	"l10n": "./package.nls.json",
 	"activationEvents": [
 		"workspaceContains:**/.env*",
 		"onCommand:envsync-le.openSettings",
@@ -377,7 +376,6 @@
 		"vitest": "^3.2.4"
 	},
 	"dependencies": {
-		"dotenv": "^17.2.3",
-		"vscode-nls": "^5.2.0"
+		"dotenv": "^17.2.3"
 	}
 }

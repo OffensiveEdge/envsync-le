@@ -1,10 +1,7 @@
 import type * as vscode from 'vscode';
-import * as nls from 'vscode-nls';
 import type { readConfig } from '../config/config';
 import type { Configuration } from '../interfaces';
 import type { Notifier } from '../interfaces/notifier';
-
-const localize = nls.config({ messageFormat: nls.MessageFormat.file })();
 
 interface VSCodeDependencies {
 	window: typeof vscode.window;
@@ -116,12 +113,7 @@ function formatMissingKeysMessage(
 	const filename = extractFilename(filepath);
 	const keyList = formatKeyList(keys);
 
-	return localize(
-		'runtime.notification.missing-keys',
-		'Missing keys in {0}: {1}',
-		filename,
-		keyList,
-	);
+	return `Missing keys in ${filename}: ${keyList}`;
 }
 
 function formatExtraKeysMessage(
@@ -131,23 +123,13 @@ function formatExtraKeysMessage(
 	const filename = extractFilename(filepath);
 	const keyList = formatKeyList(keys);
 
-	return localize(
-		'runtime.notification.extra-keys',
-		'Extra keys in {0}: {1}',
-		filename,
-		keyList,
-	);
+	return `Extra keys in ${filename}: ${keyList}`;
 }
 
 function formatParseErrorMessage(filepath: string, error: string): string {
 	const filename = extractFilename(filepath);
 
-	return localize(
-		'runtime.notification.parse-error',
-		'Failed to parse {0}: {1}',
-		filename,
-		error,
-	);
+	return `Failed to parse ${filename}: ${error}`;
 }
 
 function extractFilename(filepath: string): string {

@@ -1,13 +1,8 @@
 import type * as vscode from 'vscode';
-import * as nls from 'vscode-nls';
 import type { readConfig } from '../config/config';
 import type { Configuration } from '../interfaces';
 import type { StatusBar } from '../interfaces/statusBar';
 import type { SyncStatus } from '../types';
-
-// Removed: import type { Window, StatusBarAlignment, ThemeColor, ExtensionContext } from 'vscode'
-
-const localize = nls.config({ messageFormat: nls.MessageFormat.file })();
 
 interface VSCodeDependencies {
 	window: typeof vscode.window; // Modified
@@ -95,11 +90,8 @@ function applyStatusConfiguration(
 }
 
 function configureInSyncStatus(statusBarItem: vscode.StatusBarItem): void {
-	statusBarItem.text = localize('runtime.statusbar.text.in-sync', '$(file) 0');
-	statusBarItem.tooltip = localize(
-		'runtime.tooltip.in-sync',
-		'All dotenv files are in sync',
-	);
+	statusBarItem.text = '$(file) 0';
+	statusBarItem.tooltip = 'All dotenv files are in sync';
 	statusBarItem.backgroundColor = undefined;
 	statusBarItem.command = undefined;
 }
@@ -109,15 +101,8 @@ function configureOutOfSyncStatus(
 	issueCount: number,
 	deps: VSCodeDependencies,
 ): void {
-	statusBarItem.text = localize(
-		'runtime.statusbar.text.out-of-sync',
-		'$(file) {0}',
-		issueCount,
-	);
-	statusBarItem.tooltip = localize(
-		'runtime.tooltip.out-of-sync',
-		'Dotenv files out of sync - click for details',
-	);
+	statusBarItem.text = `$(file) ${issueCount}`;
+	statusBarItem.tooltip = 'Dotenv files out of sync - click for details';
 	statusBarItem.backgroundColor = new deps.ThemeColor(
 		'statusBarItem.warningBackground',
 	);
@@ -131,15 +116,8 @@ function configureErrorStatus(
 ): void {
 	const displayCount = issueCount > 0 ? issueCount : '';
 
-	statusBarItem.text = localize(
-		'runtime.statusbar.text.error',
-		'$(file) {0}',
-		displayCount,
-	);
-	statusBarItem.tooltip = localize(
-		'runtime.tooltip.error',
-		'Error checking dotenv files - click for settings',
-	);
+	statusBarItem.text = `$(file) ${displayCount}`;
+	statusBarItem.tooltip = 'Error checking dotenv files - click for settings';
 	statusBarItem.backgroundColor = new deps.ThemeColor(
 		'statusBarItem.errorBackground',
 	);

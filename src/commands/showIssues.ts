@@ -1,10 +1,7 @@
 import * as vscode from 'vscode';
-import * as nls from 'vscode-nls';
 import type { Detector } from '../detection/detector';
 import type { FileSystem, UserInterface } from '../interfaces';
 import type { Telemetry } from '../interfaces/telemetry';
-
-const localize = nls.config({ messageFormat: nls.MessageFormat.file })();
 
 export function registerShowIssuesCommand(
 	context: vscode.ExtensionContext,
@@ -43,12 +40,7 @@ function shouldShowNoFilesMessage(report: { status: string }): boolean {
 }
 
 function showNoFilesMessage(): void {
-	vscode.window.showInformationMessage(
-		localize(
-			'runtime.message.no-env-files',
-			'No .env files found in workspace',
-		),
-	);
+	vscode.window.showInformationMessage('No .env files found in workspace');
 }
 
 function shouldShowInSyncMessage(report: { status: string }): boolean {
@@ -56,9 +48,7 @@ function shouldShowInSyncMessage(report: { status: string }): boolean {
 }
 
 function showInSyncMessage(): void {
-	vscode.window.showInformationMessage(
-		localize('runtime.message.in-sync', 'Selected .env files are in sync'),
-	);
+	vscode.window.showInformationMessage('Selected .env files are in sync');
 }
 
 async function displayIssuesReport(
@@ -187,11 +177,5 @@ async function showMarkdownDocument(content: string): Promise<void> {
 }
 
 function showDisplayError(error: unknown, ui: UserInterface): void {
-	ui.showErrorMessage(
-		localize(
-			'runtime.message.issues-failed',
-			'Failed to show issues: {0}',
-			(error as Error).message,
-		),
-	);
+	ui.showErrorMessage(`Failed to show issues: ${(error as Error).message}`);
 }

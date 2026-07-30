@@ -1,10 +1,7 @@
 import * as vscode from 'vscode';
-import * as nls from 'vscode-nls';
 import type { Detector } from '../detection/detector';
 import type { FileSystem, UserInterface } from '../interfaces';
 import type { Telemetry } from '../interfaces/telemetry';
-
-const localize = nls.config({ messageFormat: nls.MessageFormat.file })();
 
 export function registerCompareSelectedCommand(
 	context: vscode.ExtensionContext,
@@ -83,10 +80,7 @@ async function promptUserForFiles(
 	const picks = createFilePicks(allEnvFiles, fileSystem);
 	const selected = await ui.showQuickPick(picks, {
 		canPickMany: true,
-		placeHolder: localize(
-			'runtime.picker.select-files',
-			'Select .env files to compare',
-		),
+		placeHolder: 'Select .env files to compare',
 	});
 
 	if (!selected || (Array.isArray(selected) && selected.length === 0)) {
@@ -104,12 +98,7 @@ async function findAllEnvFiles(
 }
 
 function showNoFilesMessage(ui: UserInterface): void {
-	ui.showInformationMessage(
-		localize(
-			'runtime.message.no-env-files',
-			'No .env files found in workspace',
-		),
-	);
+	ui.showInformationMessage('No .env files found in workspace');
 }
 
 function createFilePicks(
@@ -137,12 +126,7 @@ function hasMinimumFiles(files: vscode.Uri[]): boolean {
 }
 
 function showMinimumFilesWarning(ui: UserInterface): void {
-	ui.showWarningMessage(
-		localize(
-			'runtime.message.need-two-files',
-			'Please select at least 2 .env files to compare',
-		),
-	);
+	ui.showWarningMessage('Please select at least 2 .env files to compare');
 }
 
 function filterEnvFiles(files: vscode.Uri[]): vscode.Uri[] {
@@ -159,12 +143,7 @@ function extractFilename(filepath: string): string {
 }
 
 function showMinimumEnvFilesWarning(ui: UserInterface): void {
-	ui.showWarningMessage(
-		localize(
-			'runtime.message.need-two-env-files',
-			'Please select at least 2 .env files',
-		),
-	);
+	ui.showWarningMessage('Please select at least 2 .env files');
 }
 
 async function compareFiles(
@@ -188,10 +167,7 @@ async function performComparison(
 	return await ui.showProgress(
 		{
 			location: 'notification',
-			title: localize(
-				'runtime.progress.comparing',
-				'Comparing selected files...',
-			),
+			title: 'Comparing selected files...',
 			cancellable: false,
 		},
 		async () => {
@@ -230,27 +206,15 @@ function showComparisonResult(
 }
 
 function showInSyncMessage(ui: UserInterface): void {
-	ui.showInformationMessage(
-		localize('runtime.message.in-sync', 'Selected .env files are in sync'),
-	);
+	ui.showInformationMessage('Selected .env files are in sync');
 }
 
 function showMissingKeysMessage(ui: UserInterface): void {
-	ui.showWarningMessage(
-		localize(
-			'runtime.message.missing-keys',
-			'Some files are missing keys. See status bar.',
-		),
-	);
+	ui.showWarningMessage('Some files are missing keys. See status bar.');
 }
 
 function showParseErrorMessage(ui: UserInterface): void {
-	ui.showErrorMessage(
-		localize(
-			'runtime.message.parse-errors',
-			'Some files could not be parsed. See status bar.',
-		),
-	);
+	ui.showErrorMessage('Some files could not be parsed. See status bar.');
 }
 
 function showComparisonCompleteMessage(
@@ -258,20 +222,10 @@ function showComparisonCompleteMessage(
 	ui: UserInterface,
 ): void {
 	ui.showInformationMessage(
-		localize(
-			'runtime.message.comparison-complete',
-			'Compared {0} files. Check status bar for results.',
-			fileCount,
-		),
+		`Compared ${fileCount} files. Check status bar for results.`,
 	);
 }
 
 function showComparisonError(error: unknown, ui: UserInterface): void {
-	ui.showErrorMessage(
-		localize(
-			'runtime.message.comparison-failed',
-			'Failed to compare files: {0}',
-			(error as Error).message,
-		),
-	);
+	ui.showErrorMessage(`Failed to compare files: ${(error as Error).message}`);
 }
