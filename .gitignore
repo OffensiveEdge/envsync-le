@@ -107,3 +107,9 @@ dist/
 
 # Release packages
 release/
+
+# vscode integration-test harness
+.vscode-test/
+out-test/
+!test/integration/fixtures/.env
+!test/integration/fixtures/.env.*
