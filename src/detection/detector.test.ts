@@ -35,7 +35,6 @@ const createMockConfiguration = (): Configuration => ({
 			notificationLevel: 'important',
 			statusBarEnabled: true,
 			debounceMs: 1000,
-			ignoreComments: true,
 			caseSensitive: true,
 			telemetryEnabled: false,
 			comparisonMode: 'auto',

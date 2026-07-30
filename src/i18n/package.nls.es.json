@@ -21,7 +21,6 @@
 	"manifest.settings.notifications.level.option.silent": "Ninguna",
 	"manifest.settings.statusbar.enabled.desc": "Mostrar estado en la barra",
 	"manifest.settings.debounce.desc": "Retardo (ms) tras el cambio de archivo",
-	"manifest.settings.ignore-comments.desc": "Ignorar líneas comentadas",
 	"manifest.settings.case-sensitive.desc": "Claves que distinguen entre mayúsculas y minúsculas",
 	"manifest.settings.telemetry.desc": "Habilitar registros locales",
 	"manifest.settings.comparison-mode.desc": "Modo de comparación",

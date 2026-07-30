@@ -163,11 +163,6 @@
 					"minimum": 100,
 					"description": "%manifest.settings.debounce.desc%"
 				},
-				"envsync-le.ignoreComments": {
-					"type": "boolean",
-					"default": true,
-					"description": "%manifest.settings.ignore-comments.desc%"
-				},
 				"envsync-le.caseSensitive": {
 					"type": "boolean",
 					"default": true,

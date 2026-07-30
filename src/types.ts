@@ -58,7 +58,6 @@ export interface DotSyncConfig {
 	readonly notificationLevel: NotificationLevel;
 	readonly statusBarEnabled: boolean;
 	readonly debounceMs: number;
-	readonly ignoreComments: boolean;
 	readonly caseSensitive: boolean;
 	readonly telemetryEnabled: boolean;
 	readonly comparisonMode: ComparisonMode;
