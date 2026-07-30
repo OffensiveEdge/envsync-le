@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { readConfig } from '../config/config';
 import type { Detector } from '../detection/detector';
+import { shouldExcludeFile } from '../detection/parser';
 import type { Configuration, FileSystem } from '../interfaces';
 import type { SyncReport } from '../types';
 
@@ -10,16 +11,18 @@ export function registerVSCodeWatchers(
 	configuration: Configuration,
 	fileSystem: FileSystem,
 ): void {
-	const config = readConfig(configuration);
-
 	// Debounced detection shared by all watchers
 	let timeoutId: NodeJS.Timeout | undefined;
 	let checkPromise: Promise<SyncReport> | undefined;
 	let disposed = false;
+	let watchers: vscode.FileSystemWatcher[] = [];
 
 	const debouncedDetect = (): void => {
 		if (disposed) return; // Early exit if disposed
 		if (timeoutId) clearTimeout(timeoutId);
+
+		// Config is read per event, not snapshotted at registration
+		const config = readConfig(configuration);
 
 		timeoutId = setTimeout(async () => {
 			if (disposed) return; // Check again before executing
@@ -37,44 +40,63 @@ export function registerVSCodeWatchers(
 				await checkPromise;
 			} catch (error) {
 				// Only log if notifications are enabled - respect user's preference
-				if (config.notificationLevel !== 'silent') {
+				if (readConfig(configuration).notificationLevel !== 'silent') {
 					console.error('File watcher sync check failed:', error);
 				}
 			}
 		}, config.debounceMs);
 	};
 
-	const watchers: vscode.FileSystemWatcher[] = [];
-
-	for (const pattern of config.watchPatterns) {
-		const watcher = vscode.workspace.createFileSystemWatcher(pattern);
-
-		const handleEvent = async (uri: vscode.Uri): Promise<void> => {
-			try {
-				// Apply exclude patterns on relative path
-				const rel = fileSystem.asRelativePath(uri.fsPath);
-				const excluded = config.excludePatterns.some((pat) =>
-					matchSimpleGlob(rel, pat),
-				);
-				if (excluded) return;
-				debouncedDetect();
-			} catch (error) {
-				// Log but don't crash the watcher
-				if (config.notificationLevel !== 'silent') {
-					console.error('File watcher event error:', error);
-				}
+	const handleEvent = async (uri: vscode.Uri): Promise<void> => {
+		try {
+			const config = readConfig(configuration);
+			// Apply exclude patterns on relative path
+			const rel = fileSystem.asRelativePath(uri.fsPath);
+			if (shouldExcludeFile(rel, config.excludePatterns)) return;
+			debouncedDetect();
+		} catch (error) {
+			// Log but don't crash the watcher
+			if (readConfig(configuration).notificationLevel !== 'silent') {
+				console.error('File watcher event error:', error);
 			}
-		};
+		}
+	};
 
-		watcher.onDidCreate(handleEvent);
-		watcher.onDidChange(handleEvent);
-		watcher.onDidDelete(handleEvent);
+	function createWatchers(): void {
+		const config = readConfig(configuration);
 
-		context.subscriptions.push(watcher);
-		watchers.push(watcher);
+		for (const pattern of config.watchPatterns) {
+			const watcher = vscode.workspace.createFileSystemWatcher(pattern);
+
+			watcher.onDidCreate(handleEvent);
+			watcher.onDidChange(handleEvent);
+			watcher.onDidDelete(handleEvent);
+
+			watchers.push(watcher);
+		}
 	}
 
-	// Cleanup debounce timer and set disposed flag
+	function disposeWatchers(): void {
+		for (const watcher of watchers) {
+			watcher.dispose();
+		}
+		watchers = [];
+	}
+
+	createWatchers();
+
+	// Watchers were previously built once from a config snapshot; changing
+	// watchPatterns required a window reload to take effect.
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeConfiguration((event) => {
+			if (event.affectsConfiguration('envsync-le.watchPatterns')) {
+				disposeWatchers();
+				createWatchers();
+			}
+		}),
+	);
+
+	// Cleanup watchers, debounce timer, and set disposed flag
 	context.subscriptions.push({
 		dispose: () => {
 			disposed = true;
@@ -82,18 +104,7 @@ export function registerVSCodeWatchers(
 				clearTimeout(timeoutId);
 				timeoutId = undefined;
 			}
+			disposeWatchers();
 		},
 	});
-}
-
-// Very small glob matcher: supports "**", "*" and simple path segments
-function matchSimpleGlob(input: string, pattern: string): boolean {
-	// Escape regex special chars except *
-	const escaped = pattern.replace(/[.+?^${}()|[\\]/g, '\\$&');
-	// Use a placeholder to avoid interfering replacements
-	const DOUBLE_STAR = '\u0000';
-	const withMarker = escaped.replace(/\*\*/g, DOUBLE_STAR);
-	const singleExpanded = withMarker.replace(/\*/g, '[^/]*');
-	const regexStr = `^${singleExpanded.replace(new RegExp(DOUBLE_STAR, 'g'), '.*')}$`;
-	return new RegExp(regexStr).test(input);
 }
