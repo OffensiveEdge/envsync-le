@@ -2,31 +2,18 @@ import { describe, expect, it } from 'vitest';
 import type { Configuration } from '../interfaces';
 import { readConfig } from './config';
 
+function makeConfig(values: Record<string, unknown> = {}): Configuration {
+	return {
+		get: <T>(key: string, defaultValue: T): T =>
+			key in values ? (values[key] as T) : defaultValue,
+		getSection: () => makeConfig(),
+		has: (key: string) => key in values,
+	};
+}
+
 describe('readConfig', () => {
 	it('should return default values when configuration is empty', () => {
-		const mockConfig: Configuration = {
-			get: (key: string, defaultValue: unknown) => {
-				if (key === 'excludePatterns') return ['.env.*.local'];
-				if (key === 'compareOnlyFiles') return [];
-				if (key === 'temporaryIgnore') return [];
-				return defaultValue;
-			},
-			getSection: () => ({
-				get: () => undefined,
-				getSection: () => ({
-					get: () => undefined,
-					getSection: () => ({}) as never,
-					has: () => false,
-					keys: () => [],
-				}),
-				has: () => false,
-				keys: () => [],
-			}),
-			has: () => false,
-			keys: () => [],
-		};
-
-		const result = readConfig(mockConfig);
+		const result = readConfig(makeConfig());
 
 		expect(result.enabled).toBe(true);
 		expect(result.watchPatterns).toEqual(['.env*']);
@@ -45,44 +32,23 @@ describe('readConfig', () => {
 	});
 
 	it('should handle custom configuration values', () => {
-		const mockConfig: Configuration = {
-			get: (key: string, defaultValue: unknown) => {
-				const values: Record<string, unknown> = {
-					enabled: false,
-					watchPatterns: ['.env', '.env.local'],
-					excludePatterns: ['.env.prod'],
-					notificationsLevel: 'all',
-					'statusBar.enabled': false,
-					debounceMs: 500,
-					ignoreComments: false,
-					caseSensitive: false,
-					telemetryEnabled: true,
-					comparisonMode: 'manual',
-					compareOnlyFiles: ['.env.template'],
-					templateFile: '.env.template',
-					temporaryIgnore: ['.env.ignored'],
-				};
-				return values[key] ?? defaultValue;
-			},
-			getSection: () => ({
-				get: (key: string, defaultValue: unknown) => {
-					if (key === 'enabled') return false;
-					return defaultValue;
-				},
-				getSection: () => ({
-					get: () => undefined,
-					getSection: () => ({}) as never,
-					has: () => false,
-					keys: () => [],
-				}),
-				has: () => false,
-				keys: () => [],
+		const result = readConfig(
+			makeConfig({
+				enabled: false,
+				watchPatterns: ['.env', '.env.local'],
+				excludePatterns: ['.env.prod'],
+				notificationsLevel: 'all',
+				'statusBar.enabled': false,
+				debounceMs: 500,
+				ignoreComments: false,
+				caseSensitive: false,
+				telemetryEnabled: true,
+				comparisonMode: 'manual',
+				compareOnlyFiles: ['.env.template'],
+				templateFile: '.env.template',
+				temporaryIgnore: ['.env.ignored'],
 			}),
-			has: () => true,
-			keys: () => ['enabled', 'watchPatterns'],
-		};
-
-		const result = readConfig(mockConfig);
+		);
 
 		expect(result.enabled).toBe(false);
 		expect(result.watchPatterns).toEqual(['.env', '.env.local']);
@@ -100,105 +66,31 @@ describe('readConfig', () => {
 	});
 
 	it('should enforce minimum debounce value', () => {
-		const mockConfig: Configuration = {
-			get: (key: string, defaultValue: unknown) => {
-				if (key === 'debounceMs') return 50; // Below minimum
-				return defaultValue;
-			},
-			getSection: () => ({
-				get: () => undefined,
-				getSection: () => ({
-					get: () => undefined,
-					getSection: () => ({}) as never,
-					has: () => false,
-					keys: () => [],
-				}),
-				has: () => false,
-				keys: () => [],
-			}),
-			has: () => false,
-			keys: () => [],
-		};
-
-		const result = readConfig(mockConfig);
+		const result = readConfig(makeConfig({ debounceMs: 50 }));
 		expect(result.debounceMs).toBe(100); // Should be clamped to minimum
 	});
 
 	it('should validate notification levels', () => {
-		const mockConfig: Configuration = {
-			get: (key: string, defaultValue: unknown) => {
-				if (key === 'notificationsLevel') return 'invalid-level';
-				return defaultValue;
-			},
-			getSection: () => ({
-				get: () => undefined,
-				getSection: () => ({
-					get: () => undefined,
-					getSection: () => ({}) as never,
-					has: () => false,
-					keys: () => [],
-				}),
-				has: () => false,
-				keys: () => [],
-			}),
-			has: () => false,
-			keys: () => [],
-		};
-
-		const result = readConfig(mockConfig);
+		const result = readConfig(
+			makeConfig({ notificationsLevel: 'invalid-level' }),
+		);
 		expect(result.notificationLevel).toBe('important'); // Should fallback to default
 	});
 
 	it('should validate comparison modes', () => {
-		const mockConfig: Configuration = {
-			get: (key: string, defaultValue: unknown) => {
-				if (key === 'comparisonMode') return 'invalid-mode';
-				return defaultValue;
-			},
-			getSection: () => ({
-				get: () => undefined,
-				getSection: () => ({
-					get: () => undefined,
-					getSection: () => ({}) as never,
-					has: () => false,
-					keys: () => [],
-				}),
-				has: () => false,
-				keys: () => [],
-			}),
-			has: () => false,
-			keys: () => [],
-		};
-
-		const result = readConfig(mockConfig);
+		const result = readConfig(makeConfig({ comparisonMode: 'invalid-mode' }));
 		expect(result.comparisonMode).toBe('auto'); // Should fallback to default
 	});
 
 	it('should return frozen arrays for immutability', () => {
-		const mockConfig: Configuration = {
-			get: (key: string, defaultValue: unknown) => {
-				if (key === 'watchPatterns') return ['.env*'];
-				if (key === 'excludePatterns') return ['.env.*.local'];
-				if (key === 'compareOnlyFiles') return [];
-				if (key === 'temporaryIgnore') return [];
-				return defaultValue;
-			},
-			getSection: () => ({
-				get: () => undefined,
-				getSection: () => ({
-					get: () => undefined,
-					getSection: () => ({}) as never,
-					has: () => false,
-					keys: () => [],
-				}),
-				has: () => false,
-				keys: () => [],
+		const result = readConfig(
+			makeConfig({
+				watchPatterns: ['.env*'],
+				excludePatterns: ['.env.*.local'],
+				compareOnlyFiles: [],
+				temporaryIgnore: [],
 			}),
-			has: () => false,
-			keys: () => [],
-		};
-
-		const result = readConfig(mockConfig);
+		);
 
 		expect(Object.isFrozen(result.watchPatterns)).toBe(true);
 		expect(Object.isFrozen(result.excludePatterns)).toBe(true);

@@ -50,7 +50,7 @@ export const window = {
 	showWarningMessage: vi.fn(),
 	showErrorMessage: vi.fn(),
 	showQuickPick: vi.fn(),
-	withProgress: vi.fn((options: any, task: any) => task()),
+	withProgress: vi.fn((_options: any, task: any) => task()),
 	setStatusBarMessage: vi.fn(),
 	createStatusBarItem: vi.fn(() => ({
 		show: vi.fn(),

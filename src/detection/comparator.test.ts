@@ -131,8 +131,8 @@ describe('compareFiles', () => {
 
 		expect(result.status).toBe('missing-keys');
 		expect(result.missingKeys).toHaveLength(2);
-		expect(result.missingKeys[0].keys).toEqual(['KEY3', 'KEY4']);
-		expect(result.missingKeys[1].keys).toEqual(['KEY1', 'KEY2']);
+		expect(result.missingKeys[0]?.keys).toEqual(['KEY3', 'KEY4']);
+		expect(result.missingKeys[1]?.keys).toEqual(['KEY1', 'KEY2']);
 	});
 
 	it('should return frozen arrays for immutability', () => {

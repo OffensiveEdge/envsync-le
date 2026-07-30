@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, type Mock, vi } from 'vitest';
 import type { CommandAdapter } from '../interfaces/command';
 import type { Telemetry } from '../interfaces/telemetry';
 import { registerOpenSettingsCommand } from './settings';
@@ -7,7 +7,9 @@ describe('registerOpenSettingsCommand', () => {
 	it('should register the open settings command and execute it correctly', async () => {
 		const mockCommandAdapter: CommandAdapter = {
 			registerCommand: vi.fn(),
-			executeCommand: vi.fn(async () => Promise.resolve()),
+			executeCommand: vi.fn(
+				async () => undefined,
+			) as CommandAdapter['executeCommand'],
 		};
 		const mockTelemetry: Telemetry = {
 			event: vi.fn(),
@@ -24,8 +26,8 @@ describe('registerOpenSettingsCommand', () => {
 		);
 
 		// Get the callback function that was registered
-		const registeredCallback = (mockCommandAdapter.registerCommand as vi.Mock)
-			.mock.calls[0][1];
+		const registeredCallback = (mockCommandAdapter.registerCommand as Mock).mock
+			.calls[0]?.[1];
 
 		// Execute the callback
 		await registeredCallback();

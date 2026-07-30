@@ -44,20 +44,11 @@ const createMockConfiguration = (): Configuration => ({
 			temporaryIgnore: [],
 		};
 		return values[key] ?? defaultValue;
-	}),
-	getSection: vi.fn(() => ({
-		get: vi.fn((key: string, defaultValue: unknown) => defaultValue),
-		getSection: vi.fn(() => ({
-			get: vi.fn(),
-			getSection: vi.fn(),
-			has: vi.fn(),
-			keys: vi.fn(),
-		})),
-		has: vi.fn(() => false),
-		keys: vi.fn(() => []),
-	})),
+	}) as Configuration['get'],
+	getSection: vi.fn(() =>
+		createMockConfiguration(),
+	) as Configuration['getSection'],
 	has: vi.fn(() => false),
-	keys: vi.fn(() => []),
 });
 
 const createMockFileSystem = (): FileSystem => ({
@@ -174,8 +165,8 @@ describe('createDetector', () => {
 		expect(result.status).toBe('missing-keys');
 		expect(result.files).toHaveLength(2);
 		expect(result.missingKeys).toHaveLength(1);
-		expect(result.missingKeys[0].filepath).toBe('.env.local');
-		expect(result.missingKeys[0].keys).toEqual(['KEY2']);
+		expect(result.missingKeys[0]?.filepath).toBe('.env.local');
+		expect(result.missingKeys[0]?.keys).toEqual(['KEY2']);
 
 		// Verify UI updates were called
 		expect(statusBar.updateStatus).toHaveBeenCalledWith('missing-keys', 1);
@@ -259,8 +250,8 @@ describe('createDetector', () => {
 		expect(result.status).toBe('missing-keys');
 		expect(result.files).toHaveLength(2);
 		expect(result.missingKeys).toHaveLength(1);
-		expect(result.missingKeys[0].filepath).toBe('.env.local');
-		expect(result.missingKeys[0].keys).toEqual(['KEY2']);
+		expect(result.missingKeys[0]?.filepath).toBe('.env.local');
+		expect(result.missingKeys[0]?.keys).toEqual(['KEY2']);
 
 		// Verify telemetry was called
 		expect(telemetry.event).toHaveBeenCalledWith('sync-check-selected', {
@@ -299,9 +290,9 @@ describe('createDetector', () => {
 		expect(result.missingKeys).toEqual([]);
 		expect(result.extraKeys).toEqual([]);
 		expect(result.errors).toHaveLength(1);
-		expect(result.errors[0].type).toBe('read-error');
-		expect(result.errors[0].message).toContain('Failed to search pattern');
-		expect(result.errors[0].filepath).toBe('pattern-search');
+		expect(result.errors[0]?.type).toBe('read-error');
+		expect(result.errors[0]?.message).toContain('Failed to search pattern');
+		expect(result.errors[0]?.filepath).toBe('pattern-search');
 
 		// Verify error handling UI updates
 		expect(statusBar.updateStatus).toHaveBeenCalledWith('no-files', 0);
@@ -333,10 +324,8 @@ describe('createDetector', () => {
 		]);
 
 		// Mock file reading
-		(fileSystem.readFile as ReturnType<typeof vi.fn>).mockImplementation(
-			(filepath: string) => {
-				return Promise.resolve('KEY1=value1');
-			},
+		(fileSystem.readFile as ReturnType<typeof vi.fn>).mockImplementation(() =>
+			Promise.resolve('KEY1=value1'),
 		);
 
 		// Mock file stats

@@ -350,19 +350,21 @@
 		}
 	},
 	"scripts": {
-		"prebuild": "npm run clean && npm run copy:i18n",
-		"build": "tsc -p ./",
-		"clean": "rm -rf dist coverage && node -e \"try{require('fs').readdirSync('.').filter(f=>f.startsWith('package.nls.')&&f.endsWith('.json')&&f!=='package.nls.json').forEach(f=>require('fs').unlinkSync(f))}catch(e){}\"",
-		"watch": "tsc -watch -p ./",
+		"clean": "node -e \"const fs=require('fs');['dist','coverage','release'].forEach(d=>fs.rmSync(d,{recursive:true,force:true}))\"",
+		"clean:i18n": "node -e \"const fs=require('fs');fs.readdirSync('.').filter(f=>f.startsWith('package.nls.')&&f.endsWith('.json')&&f!=='package.nls.json').forEach(f=>fs.unlinkSync(f))\"",
+		"copy:i18n": "node -e \"const fs=require('fs');fs.readdirSync('src/i18n').forEach(f=>fs.copyFileSync('src/i18n/'+f,f))\"",
+		"build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --target=node20 --main-fields=module,main --sourcemap",
+		"build:prod": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --target=node20 --main-fields=module,main --minify --sourcemap=external",
+		"watch": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --target=node20 --main-fields=module,main --sourcemap --watch",
+		"typecheck": "tsc --noEmit",
+		"check:bundle": "node scripts/check-bundle.js",
 		"test": "vitest run --pool=threads",
 		"test:watch": "vitest --pool=threads",
 		"test:coverage": "vitest run --coverage --pool=threads",
-		"test:ui": "vitest --ui",
-		"lint": "biome check .",
-		"lint:fix": "biome check --write .",
-		"vscode:prepublish": "npm run build",
-		"package": "mkdir -p release && npx vsce package --out release/${npm_package_name}-${npm_package_version}.vsix",
-		"copy:i18n": "cp -f src/i18n/package.nls.*.json . || true"
+		"lint": "biome check src/",
+		"lint:fix": "biome check --write src/",
+		"vscode:prepublish": "npm run typecheck && npm run build:prod && npm run check:bundle && npm run copy:i18n",
+		"package": "node -e \"require('fs').mkdirSync('release',{recursive:true})\" && vsce package --out release/ && npm run clean:i18n"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.2.0",
@@ -370,6 +372,7 @@
 		"@types/vscode": "^1.70.0",
 		"@vitest/coverage-v8": "^3.2.4",
 		"@vscode/vsce": "^3.6.0",
+		"esbuild": "^0.28.1",
 		"typescript": "^5.5.3",
 		"vitest": "^3.2.4"
 	},

@@ -1,35 +1,24 @@
 {
-    "compilerOptions": {
-        "module": "CommonJS",
-        "target": "ES2020",
-        "outDir": "dist",
-        "lib": [
-            "ES2020"
-        ],
-        "sourceMap": true,
-        "rootDir": "src",
-        "strict": true,
-        "noUncheckedIndexedAccess": true,
-        "exactOptionalPropertyTypes": true,
-        "noImplicitReturns": true,
-        "noFallthroughCasesInSwitch": true,
-        "noUncheckedSideEffectImports": true,
-        "allowUnusedLabels": false,
-        "allowUnreachableCode": false,
-        "skipLibCheck": true,
-        "declaration": false,
-        "moduleResolution": "node",
-        "esModuleInterop": true,
-        "allowSyntheticDefaultImports": true,
-        "forceConsistentCasingInFileNames": true
-    },
-    "include": [
-        "src/**/*"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist",
-        "coverage",
-        "**/*.test.ts"
-    ]
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"lib": ["ES2022"],
+		"moduleResolution": "Bundler",
+		"noEmit": true,
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"exactOptionalPropertyTypes": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"noImplicitReturns": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noImplicitOverride": true,
+		"allowUnusedLabels": false,
+		"allowUnreachableCode": false
+	},
+	"include": ["src/**/*", "vitest.config.ts"],
+	"exclude": ["node_modules", "dist", "coverage", "release"]
 }
