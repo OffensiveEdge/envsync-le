@@ -3,17 +3,13 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { DotenvFile } from '../types';
 import { compareFiles } from './comparator';
-import { detectFileType, parseDotenvFile, shouldExcludeFile } from './parser';
+import { detectFileType, shouldExcludeFile } from './heuristics';
+import { parseDotenvFile } from './parser';
 
 /**
- * Characterization tests: pin the CURRENT detection output, including
- * known bugs (per-line parser flags multiline values and export-prefixed
- * keys as errors, success:true even with errors, duplicate keys emitted
- * twice, dash accepted in keys, `.local`/`.dev`/`.prod` substring matches
- * misclassify unrelated filenames, exclude globs anchored so nested files
- * never match plain patterns, extraKeys always empty). Behavior changes
- * must update these snapshots in the same commit, so every output diff
- * is explicit.
+ * Characterization tests: pin the full detection output per input.
+ * Behavior changes must update these snapshots in the same commit, so
+ * every output diff is explicit and lands in the CHANGELOG ledger.
  */
 
 const FIXTURES = ['basic.env', 'tricky.env'] as const;

@@ -17,13 +17,23 @@ export function compareFiles(
 	const caseSensitive = options?.caseSensitive ?? true;
 	const referenceKeys = collectReferenceKeys(files, options);
 	const missingKeys = findMissingKeys(files, referenceKeys, caseSensitive);
-	const status = determineStatus(missingKeys);
+
+	// Extra keys only exist relative to a template: in auto mode the
+	// reference is the union of all keys, so nothing can be "extra".
+	const template = shouldUseTemplateMode(options)
+		? findTemplateFile(files, options?.templatePath ?? '')
+		: undefined;
+	const extraKeys = template
+		? findExtraKeys(files, referenceKeys, caseSensitive, template)
+		: [];
+
+	const status = determineStatus(missingKeys, extraKeys);
 
 	return {
 		status,
 		files: Object.freeze([...files]),
 		missingKeys: Object.freeze(missingKeys),
-		extraKeys: Object.freeze([]),
+		extraKeys: Object.freeze(extraKeys),
 		errors: Object.freeze([]),
 		lastChecked: Date.now(),
 	};
@@ -164,9 +174,48 @@ function hasAllKeys(
 	return keys.every((key) => fileKeys.has(normalizeKey(key, caseSensitive)));
 }
 
-function determineStatus(missingKeys: KeyMismatch[]): SyncStatus {
+function findExtraKeys(
+	files: readonly DotenvFile[],
+	referenceKeys: Set<string>,
+	caseSensitive: boolean,
+	template: DotenvFile,
+): KeyMismatch[] {
+	const normalizedReference = new Set(
+		[...referenceKeys].map((key) => normalizeKey(key, caseSensitive)),
+	);
+	const mismatches: KeyMismatch[] = [];
+
+	for (const file of files) {
+		if (file.path === template.path) {
+			continue;
+		}
+
+		const extra = file.keys.filter(
+			(key) => !normalizedReference.has(normalizeKey(key, caseSensitive)),
+		);
+
+		if (extra.length > 0) {
+			mismatches.push({
+				filepath: file.path,
+				keys: Object.freeze([...extra]),
+				reference: template.path,
+			});
+		}
+	}
+
+	return mismatches;
+}
+
+function determineStatus(
+	missingKeys: KeyMismatch[],
+	extraKeys: KeyMismatch[],
+): SyncStatus {
 	if (missingKeys.length > 0) {
 		return 'missing-keys';
+	}
+
+	if (extraKeys.length > 0) {
+		return 'extra-keys';
 	}
 
 	return 'in-sync';

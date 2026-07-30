@@ -5,7 +5,8 @@ import type { StatusBar } from '../interfaces/statusBar';
 import type { Telemetry } from '../interfaces/telemetry';
 import type { DotenvFile, ParseError, ParseResult, SyncReport } from '../types';
 import { compareFiles } from './comparator';
-import { detectFileType, parseDotenvFile, shouldExcludeFile } from './parser';
+import { detectFileType, shouldExcludeFile } from './heuristics';
+import { parseDotenvFile } from './parser';
 
 export interface Detector {
 	checkSync(): Promise<SyncReport>;
@@ -115,6 +116,7 @@ export function createDetector(
 		}
 
 		notifyMissingKeys(report);
+		notifyExtraKeys(report);
 		notifyParseErrors(errors);
 	}
 
@@ -125,6 +127,13 @@ export function createDetector(
 
 		for (const mismatch of report.missingKeys) {
 			notifier.showMissingKeys(mismatch.filepath, mismatch.keys);
+		}
+	}
+
+	function notifyExtraKeys(report: SyncReport): void {
+		// The notifier only surfaces these at notificationLevel 'all'
+		for (const mismatch of report.extraKeys) {
+			notifier.showExtraKeys(mismatch.filepath, mismatch.keys);
 		}
 	}
 
@@ -424,18 +433,16 @@ async function parseAndAddFile(
 		const text = await fileSystem.readFile(filepath);
 		const parseResult = parseDotenvFile(text, filepath);
 
-		if (parseResult.errors.length > 0) {
-			errors.push(...parseResult.errors);
-		}
+		// Keys are extracted best-effort: a file with a malformed line
+		// still contributes its parseable keys AND its errors.
+		errors.push(...parseResult.errors);
 
-		if (parseResult.success) {
-			const dotenvFile = await createDotenvFile(
-				filepath,
-				parseResult,
-				fileSystem,
-			);
-			files.push(dotenvFile);
-		}
+		const dotenvFile = await createDotenvFile(
+			filepath,
+			parseResult,
+			fileSystem,
+		);
+		files.push(dotenvFile);
 	} catch (error) {
 		errors.push(createFileReadError(filepath, error));
 	}
@@ -472,35 +479,10 @@ async function loadSpecificFiles(
 	const errors: ParseError[] = [];
 
 	for (const filepath of filePaths) {
-		await loadSpecificFile(filepath, fileSystem, files, errors);
+		await parseAndAddFile(filepath, fileSystem, files, errors);
 	}
 
 	return { files, errors };
-}
-
-async function loadSpecificFile(
-	filepath: string,
-	fileSystem: FileSystem,
-	files: DotenvFile[],
-	errors: ParseError[],
-): Promise<void> {
-	try {
-		const text = await fileSystem.readFile(filepath);
-		const parseResult = parseDotenvFile(text, filepath);
-
-		if (parseResult.success) {
-			const dotenvFile = await createDotenvFile(
-				filepath,
-				parseResult,
-				fileSystem,
-			);
-			files.push(dotenvFile);
-		} else {
-			errors.push(...parseResult.errors);
-		}
-	} catch (error) {
-		errors.push(createFileReadError(filepath, error));
-	}
 }
 
 function applyComparisonModeFilter(

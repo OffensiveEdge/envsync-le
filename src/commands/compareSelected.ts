@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import type { Detector } from '../detection/detector';
+import { isEnvFileName } from '../detection/heuristics';
 import type { FileSystem, UserInterface } from '../interfaces';
 import type { Telemetry } from '../interfaces/telemetry';
 
@@ -130,16 +131,7 @@ function showMinimumFilesWarning(ui: UserInterface): void {
 }
 
 function filterEnvFiles(files: vscode.Uri[]): vscode.Uri[] {
-	return files.filter((uri) => isEnvFile(uri));
-}
-
-function isEnvFile(uri: vscode.Uri): boolean {
-	const filename = extractFilename(uri.fsPath);
-	return filename.startsWith('.env');
-}
-
-function extractFilename(filepath: string): string {
-	return filepath.split('/').pop() ?? '';
+	return files.filter((uri) => isEnvFileName(uri.fsPath));
 }
 
 function showMinimumEnvFilesWarning(ui: UserInterface): void {

@@ -1,5 +1,6 @@
 import type * as vscode from 'vscode';
 import type { readConfig } from '../config/config';
+import { basename } from '../detection/heuristics';
 import type { Configuration } from '../interfaces';
 import type { Notifier } from '../interfaces/notifier';
 
@@ -119,7 +120,7 @@ function formatParseErrorMessage(filepath: string, error: string): string {
 }
 
 function extractFilename(filepath: string): string {
-	return filepath.split('/').pop() ?? filepath;
+	return basename(filepath) || filepath;
 }
 
 function formatKeyList(keys: readonly string[]): string {

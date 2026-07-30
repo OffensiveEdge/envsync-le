@@ -173,7 +173,15 @@ exports[`comparator characterization > no single file holds all missing keys -> 
 exports[`comparator characterization > template mode compares against template keys only 1`] = `
 {
   "errors": [],
-  "extraKeys": [],
+  "extraKeys": [
+    {
+      "filepath": ".env",
+      "keys": [
+        "EXTRA",
+      ],
+      "reference": ".env.example",
+    },
+  ],
   "files": [
     {
       "keys": [
@@ -301,8 +309,8 @@ exports[`detectFileType characterization > classifies filenames 1`] = `
   "/deep/path/.env": "base",
   "C:\\project\\.env": "base",
   "C:\\project\\.env.local": "local",
-  "app.device.env": "development",
-  "foo.test.env": "test",
+  "app.device.env": "base",
+  "foo.test.env": "base",
 }
 `;
 
@@ -320,23 +328,12 @@ exports[`parser characterization > parses basic.env 1`] = `
     "SINGLE_QUOTED",
     "URL_WITH_EQUALS",
   ],
-  "success": true,
 }
 `;
 
 exports[`parser characterization > parses tricky.env 1`] = `
 {
   "errors": [
-    {
-      "filepath": "tricky.env",
-      "message": "Line 2: Invalid key format "export EXPORTED_KEY"",
-      "type": "parse-error",
-    },
-    {
-      "filepath": "tricky.env",
-      "message": "Line 4: Missing equals sign in "line two""",
-      "type": "parse-error",
-    },
     {
       "filepath": "tricky.env",
       "message": "Line 5: Missing equals sign in "NO_EQUALS_LINE"",
@@ -359,17 +356,16 @@ exports[`parser characterization > parses tricky.env 1`] = `
     },
   ],
   "keys": [
+    "EXPORTED_KEY",
     "MULTILINE",
     "lowercase_key",
     "DASH-KEY",
-    "DUPLICATE",
     "DUPLICATE",
     "SPACED_KEY",
     "TAB_INDENTED",
     "INLINE_COMMENT",
     "QUOTED_HASH",
   ],
-  "success": true,
 }
 `;
 
@@ -383,7 +379,7 @@ exports[`shouldExcludeFile characterization > matches exclude globs 1`] = `
     ],
   },
   {
-    "excluded": false,
+    "excluded": true,
     "path": "config/.env.staging.local",
     "patterns": [
       ".env.*.local",
@@ -418,7 +414,7 @@ exports[`shouldExcludeFile characterization > matches exclude globs 1`] = `
     ],
   },
   {
-    "excluded": false,
+    "excluded": true,
     "path": "sub/.env",
     "patterns": [
       ".env",

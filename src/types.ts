@@ -23,7 +23,6 @@ export interface DotenvFile {
 }
 
 export interface ParseResult {
-	readonly success: boolean;
 	readonly keys: readonly string[];
 	readonly errors: readonly ParseError[];
 }

@@ -1,4 +1,20 @@
-import type { DotenvFileType, ParseResult } from '../types';
+import type { ParseError, ParseResult } from '../types';
+
+/**
+ * Line-oriented dotenv parser. Values are never interpreted — only key
+ * names matter for sync comparison — but quoted values that span lines
+ * must be consumed so their continuation lines are not misread as
+ * malformed entries.
+ *
+ * Intentional behavior (documented, not bugs):
+ * - Keys must match /^[a-zA-Z_][a-zA-Z0-9_-]*$/; anything else on the
+ *   left of '=' is reported as a parse error for that line.
+ * - A leading 'export ' prefix is accepted and stripped.
+ * - Duplicate keys count once (dotenv itself keeps one occurrence).
+ * - Multi-line values are supported for double-, single-, and
+ *   backtick-quoted values; an unterminated quote is reported and
+ *   swallows the remainder of the file (matching dotenv's behavior).
+ */
 
 const KEY_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_-]*$/;
 
@@ -7,34 +23,38 @@ export function parseDotenvFile(
 	filepath: string,
 ): ParseResult {
 	const keys: string[] = [];
-	const errors: Array<{
-		type: 'parse-error' | 'read-error' | 'access-error';
-		message: string;
-		filepath: string;
-	}> = [];
+	const seen = new Set<string>();
+	const errors: ParseError[] = [];
 
-	const lines = content.split('\n');
+	const lines = content.split(/\r?\n/);
+	let i = 0;
 
-	for (let i = 0; i < lines.length; i++) {
-		const rawLine = lines[i];
-		if (rawLine === undefined) {
-			continue;
-		}
-
-		const line = rawLine.trim();
+	while (i < lines.length) {
+		const line = (lines[i] ?? '').trim();
 		const lineNumber = i + 1;
+		i++;
 
-		if (shouldSkipLine(line)) {
+		if (line === '' || line.startsWith('#')) {
 			continue;
 		}
 
-		const parseError = parseEnvLine(line, lineNumber, filepath);
-		if (parseError) {
-			errors.push(parseError);
+		const equalIndex = line.indexOf('=');
+		if (equalIndex === -1) {
+			errors.push(
+				createParseError(
+					lineNumber,
+					`Missing equals sign in "${line}"`,
+					filepath,
+				),
+			);
 			continue;
 		}
 
-		const key = extractKey(line);
+		const key = line
+			.substring(0, equalIndex)
+			.trim()
+			.replace(/^export\s+/, '');
+
 		if (!key) {
 			errors.push(
 				createParseError(lineNumber, 'Empty key before equals sign', filepath),
@@ -42,155 +62,76 @@ export function parseDotenvFile(
 			continue;
 		}
 
-		if (!isValidKey(key)) {
+		if (!KEY_PATTERN.test(key)) {
 			errors.push(
 				createParseError(lineNumber, `Invalid key format "${key}"`, filepath),
 			);
 			continue;
 		}
 
-		keys.push(key);
+		// A quoted value with no closing quote on this line spans the
+		// following lines until one closes it.
+		const openQuote = findOpenQuote(line.substring(equalIndex + 1).trim());
+		if (openQuote) {
+			while (i < lines.length && !closesQuote(lines[i] ?? '', openQuote)) {
+				i++;
+			}
+			if (i >= lines.length) {
+				errors.push(
+					createParseError(
+						lineNumber,
+						`Unterminated ${openQuote} quoted value for "${key}"`,
+						filepath,
+					),
+				);
+			} else {
+				i++; // consume the closing line
+			}
+		}
+
+		if (!seen.has(key)) {
+			seen.add(key);
+			keys.push(key);
+		}
 	}
 
 	return {
-		success: true,
 		keys: Object.freeze(keys),
 		errors: Object.freeze(errors),
 	};
 }
 
-function shouldSkipLine(line: string): boolean {
-	if (!line) {
-		return true;
-	}
+type Quote = '"' | "'" | '`';
 
-	if (line.startsWith('#')) {
-		return true;
+function findOpenQuote(value: string): Quote | null {
+	const first = value[0];
+	if (first !== '"' && first !== "'" && first !== '`') {
+		return null;
 	}
+	return closesQuote(value.substring(1), first) ? null : first;
+}
 
+function closesQuote(line: string, quote: Quote): boolean {
+	for (let j = 0; j < line.length; j++) {
+		if (line[j] === '\\') {
+			j++;
+			continue;
+		}
+		if (line[j] === quote) {
+			return true;
+		}
+	}
 	return false;
-}
-
-function parseEnvLine(
-	line: string,
-	lineNumber: number,
-	filepath: string,
-): { type: 'parse-error'; message: string; filepath: string } | null {
-	const equalIndex = line.indexOf('=');
-
-	if (equalIndex === -1) {
-		return createParseError(
-			lineNumber,
-			`Missing equals sign in "${line}"`,
-			filepath,
-		);
-	}
-
-	return null;
-}
-
-function extractKey(line: string): string {
-	const equalIndex = line.indexOf('=');
-	return line.substring(0, equalIndex).trim();
-}
-
-function isValidKey(key: string): boolean {
-	return KEY_PATTERN.test(key);
 }
 
 function createParseError(
 	lineNumber: number,
 	message: string,
 	filepath: string,
-): { type: 'parse-error'; message: string; filepath: string } {
+): ParseError {
 	return {
 		type: 'parse-error',
 		message: `Line ${lineNumber}: ${message}`,
 		filepath,
 	};
-}
-
-export function detectFileType(filepath: string): DotenvFileType {
-	const filename = extractFilename(filepath);
-
-	if (filename === '.env') {
-		return 'base';
-	}
-
-	if (filename.includes('.local')) {
-		return 'local';
-	}
-
-	if (isExampleFile(filename)) {
-		return 'example';
-	}
-
-	if (isProductionFile(filename)) {
-		return 'production';
-	}
-
-	if (isDevelopmentFile(filename)) {
-		return 'development';
-	}
-
-	if (filename.includes('.test')) {
-		return 'test';
-	}
-
-	return 'base';
-}
-
-function extractFilename(filepath: string): string {
-	return filepath.split('/').pop() ?? '';
-}
-
-function isExampleFile(filename: string): boolean {
-	return filename.includes('.example') || filename.includes('.template');
-}
-
-function isProductionFile(filename: string): boolean {
-	return filename.includes('.production') || filename.includes('.prod');
-}
-
-function isDevelopmentFile(filename: string): boolean {
-	return filename.includes('.development') || filename.includes('.dev');
-}
-
-export function shouldExcludeFile(
-	filepath: string,
-	excludePatterns: readonly string[],
-): boolean {
-	return excludePatterns.some((pattern) => matchGlob(filepath, pattern));
-}
-
-function matchGlob(filepath: string, pattern: string): boolean {
-	const regexPattern = convertGlobToRegex(pattern);
-	return regexPattern.test(filepath);
-}
-
-function convertGlobToRegex(pattern: string): RegExp {
-	const escaped = escapeRegexSpecialChars(pattern);
-	const withDoubleStarMarker = replaceDoubleStarWithMarker(escaped);
-	const withSingleStar = replaceSingleStarWithPattern(withDoubleStarMarker);
-	const final = replaceMarkerWithDoubleStarPattern(withSingleStar);
-
-	return new RegExp(`^${final}$`);
-}
-
-function escapeRegexSpecialChars(pattern: string): string {
-	return pattern.replace(/[.+?^${}()|[\\]/g, '\\$&');
-}
-
-function replaceDoubleStarWithMarker(pattern: string): string {
-	const DOUBLE_STAR_MARKER = '\u0000';
-	return pattern.replace(/\*\*/g, DOUBLE_STAR_MARKER);
-}
-
-function replaceSingleStarWithPattern(pattern: string): string {
-	return pattern.replace(/\*/g, '[^/]*');
-}
-
-function replaceMarkerWithDoubleStarPattern(pattern: string): string {
-	const DOUBLE_STAR_MARKER = '\u0000';
-	return pattern.replace(new RegExp(DOUBLE_STAR_MARKER, 'g'), '.*');
 }

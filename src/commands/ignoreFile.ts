@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { readConfig } from '../config/config';
 import type { Detector } from '../detection/detector';
+import { isEnvFileName } from '../detection/heuristics';
 import type { Configuration, FileSystem, UserInterface } from '../interfaces';
 import type { Telemetry } from '../interfaces/telemetry';
 
@@ -47,8 +48,7 @@ export function registerIgnoreFileCommand(
 				}
 
 				// Validate it's an .env file
-				const filename = targetFile.fsPath.split('/').pop() ?? '';
-				if (!filename.startsWith('.env')) {
+				if (!isEnvFileName(targetFile.fsPath)) {
 					ui.showWarningMessage('Please select a .env file');
 					return;
 				}

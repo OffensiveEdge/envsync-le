@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { readConfig } from '../config/config';
 import type { Detector } from '../detection/detector';
-import { shouldExcludeFile } from '../detection/parser';
+import { shouldExcludeFile } from '../detection/heuristics';
 import type { Configuration, FileSystem } from '../interfaces';
 import type { SyncReport } from '../types';
 
