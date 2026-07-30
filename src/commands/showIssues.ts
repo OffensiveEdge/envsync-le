@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import type { Detector } from '../detection/detector';
 import type { FileSystem, UserInterface } from '../interfaces';
 import type { Telemetry } from '../interfaces/telemetry';
+import { errorMessage } from '../utils/errors';
 
 export function registerShowIssuesCommand(
 	context: vscode.ExtensionContext,
@@ -177,5 +178,5 @@ async function showMarkdownDocument(content: string): Promise<void> {
 }
 
 function showDisplayError(error: unknown, ui: UserInterface): void {
-	ui.showErrorMessage(`Failed to show issues: ${(error as Error).message}`);
+	ui.showErrorMessage(`Failed to show issues: ${errorMessage(error)}`);
 }

@@ -3,6 +3,7 @@ import type { Detector } from '../detection/detector';
 import { isEnvFileName } from '../detection/heuristics';
 import type { Configuration, FileSystem, UserInterface } from '../interfaces';
 import type { Telemetry } from '../interfaces/telemetry';
+import { errorMessage } from '../utils/errors';
 
 export function registerSetTemplateCommand(
 	context: vscode.ExtensionContext,
@@ -42,7 +43,7 @@ export function registerSetTemplateCommand(
 						placeHolder: 'Select .env file to use as template',
 					});
 
-					if (!selected) return;
+					if (!selected || Array.isArray(selected)) return;
 					templateFile = vscode.Uri.file(selected);
 				}
 
@@ -75,9 +76,7 @@ export function registerSetTemplateCommand(
 						`Set ${relativePath} as template. All .env files will be compared against it.`,
 					);
 				} catch (error) {
-					ui.showErrorMessage(
-						`Failed to set template: ${(error as Error).message}`,
-					);
+					ui.showErrorMessage(`Failed to set template: ${errorMessage(error)}`);
 				}
 			},
 		),
@@ -107,9 +106,7 @@ export function registerSetTemplateCommand(
 					'Cleared template. Returned to automatic comparison.',
 				);
 			} catch (error) {
-				ui.showErrorMessage(
-					`Failed to clear template: ${(error as Error).message}`,
-				);
+				ui.showErrorMessage(`Failed to clear template: ${errorMessage(error)}`);
 			}
 		}),
 	);

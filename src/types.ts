@@ -64,9 +64,3 @@ export interface DotSyncConfig {
 	readonly templateFile: string | undefined;
 	readonly temporaryIgnore: readonly string[];
 }
-
-export interface ComparisonRequest {
-	readonly mode: 'auto' | 'selected' | 'template';
-	readonly files?: readonly string[];
-	readonly templateFile?: string;
-}

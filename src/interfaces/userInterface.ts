@@ -24,12 +24,13 @@ export interface UserInterface {
 	showProgress<T>(options: ProgressOptions, task: () => Promise<T>): Promise<T>;
 
 	/**
-	 * Show a quick pick selection dialog
+	 * Show a quick pick selection dialog. Resolves to an array when
+	 * options.canPickMany is true.
 	 */
 	showQuickPick<T>(
 		items: QuickPickItem<T>[],
 		options: QuickPickOptions,
-	): Promise<T | undefined>;
+	): Promise<T | T[] | undefined>;
 
 	/**
 	 * Show an information message

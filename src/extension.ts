@@ -13,6 +13,7 @@ import { registerAllCommands } from './commands';
 import { readConfig } from './config/config';
 import { registerOpenSettingsCommand } from './config/settings';
 import { createDetector } from './detection/detector';
+import { errorMessage } from './utils/errors';
 
 export function activate(context: vscode.ExtensionContext): void {
 	// Create core services using factory pattern
@@ -54,8 +55,6 @@ export function activate(context: vscode.ExtensionContext): void {
 	registerOpenSettingsCommand(commandAdapter, telemetry);
 	registerAllCommands(context, {
 		telemetry,
-		notifier,
-		statusBar,
 		detector,
 		fileSystem,
 		ui: createVSCodeUserInterface(),
@@ -73,9 +72,7 @@ export function activate(context: vscode.ExtensionContext): void {
 		// Only show notifications based on user preference
 		const config = readConfig(configuration);
 		if (config.notificationLevel !== 'silent') {
-			notifier.showError(
-				`Initial sync check failed: ${error instanceof Error ? error.message : String(error)}`,
-			);
+			notifier.showError(`Initial sync check failed: ${errorMessage(error)}`);
 		}
 	});
 

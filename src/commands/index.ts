@@ -1,8 +1,6 @@
 import type * as vscode from 'vscode';
 import type { Detector } from '../detection/detector';
 import type { Configuration, FileSystem, UserInterface } from '../interfaces';
-import type { Notifier } from '../interfaces/notifier';
-import type { StatusBar } from '../interfaces/statusBar';
 import type { Telemetry } from '../interfaces/telemetry';
 import { registerCompareSelectedCommand } from './compareSelected';
 import { registerHelpCommand } from './help';
@@ -10,13 +8,12 @@ import { registerIgnoreFileCommand } from './ignoreFile';
 import { registerSetTemplateCommand } from './setTemplate';
 import { registerShowIssuesCommand } from './showIssues';
 
-// Centralized command registration
+// Centralized command registration. The deps bag carries exactly what
+// the commands consume — no notifier/statusBar (nothing here uses them).
 export function registerAllCommands(
 	context: vscode.ExtensionContext,
 	deps: Readonly<{
 		telemetry: Telemetry;
-		notifier: Notifier;
-		statusBar: StatusBar;
 		detector: Detector;
 		fileSystem: FileSystem;
 		ui: UserInterface;

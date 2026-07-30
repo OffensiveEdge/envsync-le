@@ -4,6 +4,7 @@ import type { Notifier } from '../interfaces/notifier';
 import type { StatusBar } from '../interfaces/statusBar';
 import type { Telemetry } from '../interfaces/telemetry';
 import type { DotenvFile, ParseError, ParseResult, SyncReport } from '../types';
+import { errorMessage } from '../utils/errors';
 import { compareFiles } from './comparator';
 import { detectFileType, shouldExcludeFile } from './heuristics';
 import { parseDotenvFile } from './parser';
@@ -168,9 +169,7 @@ export function createDetector(
 		statusBar.updateStatus('parse-error', 0);
 
 		if (config.notificationLevel !== 'silent') {
-			notifier.showError(
-				`Failed to check dotenv sync: ${(error as Error).message}`,
-			);
+			notifier.showError(`Failed to check dotenv sync: ${errorMessage(error)}`);
 		}
 
 		return errorReport;
@@ -196,7 +195,7 @@ export function createDetector(
 			errors: Object.freeze([
 				{
 					type: 'read-error',
-					message: `Failed to check sync: ${(error as Error).message}`,
+					message: `Failed to check sync: ${errorMessage(error)}`,
 					filepath: 'workspace',
 				},
 			]),
@@ -250,7 +249,7 @@ export function createDetector(
 		const config = readConfig(configuration);
 		if (config.notificationLevel !== 'silent') {
 			notifier.showError(
-				`Failed to check selected files: ${(error as Error).message}`,
+				`Failed to check selected files: ${errorMessage(error)}`,
 			);
 		}
 
@@ -266,7 +265,7 @@ export function createDetector(
 			errors: Object.freeze([
 				{
 					type: 'read-error',
-					message: `Failed to check selected files: ${(error as Error).message}`,
+					message: `Failed to check selected files: ${errorMessage(error)}`,
 					filepath: 'selected-files',
 				},
 			]),
@@ -357,7 +356,7 @@ async function processPattern(
 function createPatternSearchError(pattern: string, error: unknown): ParseError {
 	return {
 		type: 'read-error',
-		message: `Failed to search pattern ${pattern}: ${(error as Error).message}`,
+		message: `Failed to search pattern ${pattern}: ${errorMessage(error)}`,
 		filepath: 'pattern-search',
 	};
 }
@@ -466,7 +465,7 @@ async function createDotenvFile(
 function createFileReadError(filepath: string, error: unknown): ParseError {
 	return {
 		type: 'read-error',
-		message: (error as Error).message,
+		message: errorMessage(error),
 		filepath,
 	};
 }

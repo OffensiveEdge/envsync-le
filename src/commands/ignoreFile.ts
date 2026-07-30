@@ -4,6 +4,7 @@ import type { Detector } from '../detection/detector';
 import { isEnvFileName } from '../detection/heuristics';
 import type { Configuration, FileSystem, UserInterface } from '../interfaces';
 import type { Telemetry } from '../interfaces/telemetry';
+import { errorMessage } from '../utils/errors';
 
 export function registerIgnoreFileCommand(
 	context: vscode.ExtensionContext,
@@ -43,7 +44,7 @@ export function registerIgnoreFileCommand(
 						placeHolder: 'Select .env file to ignore',
 					});
 
-					if (!selected) return;
+					if (!selected || Array.isArray(selected)) return;
 					targetFile = vscode.Uri.file(selected);
 				}
 
@@ -80,9 +81,7 @@ export function registerIgnoreFileCommand(
 						`Temporarily ignoring ${relativePath}. Use "Stop Ignoring" to re-enable.`,
 					);
 				} catch (error) {
-					ui.showErrorMessage(
-						`Failed to ignore file: ${(error as Error).message}`,
-					);
+					ui.showErrorMessage(`Failed to ignore file: ${errorMessage(error)}`);
 				}
 			},
 		),
@@ -119,7 +118,7 @@ export function registerIgnoreFileCommand(
 						placeHolder: 'Select file to stop ignoring',
 					});
 
-					if (!selected) return;
+					if (!selected || Array.isArray(selected)) return;
 					targetPath = selected;
 				}
 
@@ -147,7 +146,7 @@ export function registerIgnoreFileCommand(
 					ui.showInformationMessage(`No longer ignoring ${targetPath}`);
 				} catch (error) {
 					ui.showErrorMessage(
-						`Failed to stop ignoring file: ${(error as Error).message}`,
+						`Failed to stop ignoring file: ${errorMessage(error)}`,
 					);
 				}
 			},
@@ -189,7 +188,7 @@ export function registerIgnoreFileCommand(
 				);
 			} catch (error) {
 				ui.showErrorMessage(
-					`Failed to clear ignore list: ${(error as Error).message}`,
+					`Failed to clear ignore list: ${errorMessage(error)}`,
 				);
 			}
 		}),

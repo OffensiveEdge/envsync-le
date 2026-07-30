@@ -32,7 +32,7 @@ export function createVSCodeUserInterface(): UserInterface {
 		async showQuickPick<T>(
 			items: QuickPickItem<T>[],
 			options: QuickPickOptions,
-		): Promise<T | undefined> {
+		): Promise<T | T[] | undefined> {
 			const quickPickItems = items.map((item) => ({
 				label: item.label,
 				description: item.description ?? '',
@@ -48,21 +48,32 @@ export function createVSCodeUserInterface(): UserInterface {
 				vscodeOptions.placeHolder = options.placeHolder;
 			}
 
-			const selected = await vscode.window.showQuickPick(
+			// With canPickMany the API resolves to an array; the static
+			// overload types don't surface that for a non-literal flag.
+			const selected = (await vscode.window.showQuickPick(
 				quickPickItems,
 				vscodeOptions,
-			);
+			)) as (typeof quickPickItems)[number] | typeof quickPickItems | undefined;
 
 			if (!selected) return undefined;
 
-			// Find the corresponding item with the value
-			const selectedItem = items.find(
-				(item) =>
-					item.label === selected.label &&
-					(item.description ?? '') === selected.description,
-			);
+			const toValue = (pick: {
+				label: string;
+				description: string;
+			}): T | undefined =>
+				items.find(
+					(item) =>
+						item.label === pick.label &&
+						(item.description ?? '') === pick.description,
+				)?.value;
 
-			return selectedItem?.value;
+			if (Array.isArray(selected)) {
+				return selected
+					.map(toValue)
+					.filter((value): value is T => value !== undefined);
+			}
+
+			return toValue(selected);
 		},
 
 		showInformationMessage(message: string): void {

@@ -3,6 +3,7 @@ import type { Detector } from '../detection/detector';
 import { isEnvFileName } from '../detection/heuristics';
 import type { FileSystem, UserInterface } from '../interfaces';
 import type { Telemetry } from '../interfaces/telemetry';
+import { errorMessage } from '../utils/errors';
 
 export function registerCompareSelectedCommand(
 	context: vscode.ExtensionContext,
@@ -219,5 +220,5 @@ function showComparisonCompleteMessage(
 }
 
 function showComparisonError(error: unknown, ui: UserInterface): void {
-	ui.showErrorMessage(`Failed to compare files: ${(error as Error).message}`);
+	ui.showErrorMessage(`Failed to compare files: ${errorMessage(error)}`);
 }

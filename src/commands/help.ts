@@ -1,14 +1,10 @@
 import * as vscode from 'vscode';
-import type { Notifier } from '../interfaces/notifier';
-import type { StatusBar } from '../interfaces/statusBar';
 import type { Telemetry } from '../interfaces/telemetry';
 
 export function registerHelpCommand(
 	context: vscode.ExtensionContext,
 	deps: Readonly<{
 		telemetry: Telemetry;
-		notifier: Notifier;
-		statusBar: StatusBar;
 	}>,
 ): void {
 	const command = vscode.commands.registerCommand(
