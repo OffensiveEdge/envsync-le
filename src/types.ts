@@ -65,11 +65,6 @@ export interface DotSyncConfig {
 	readonly compareOnlyFiles: readonly string[];
 	readonly templateFile: string | undefined;
 	readonly temporaryIgnore: readonly string[];
-	readonly safetyEnabled: boolean;
-	readonly fileSizeWarnBytes: number;
-	readonly maxFilesWarn: number;
-	readonly maxTotalSizeWarn: number;
-	readonly maxProcessingTimeWarn: number;
 }
 
 export interface ComparisonRequest {

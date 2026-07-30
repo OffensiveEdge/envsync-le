@@ -27,7 +27,6 @@ describe('readConfig', () => {
 		expect(result.compareOnlyFiles).toEqual([]);
 		expect(result.templateFile).toBeUndefined();
 		expect(result.temporaryIgnore).toEqual([]);
-		expect(result.safetyEnabled).toBe(false);
 	});
 
 	it('should handle custom configuration values', () => {

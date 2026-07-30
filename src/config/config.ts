@@ -20,17 +20,6 @@ export function readConfig(configuration: Configuration): DotSyncConfig {
 		compareOnlyFiles: readCompareOnlyFiles(configuration),
 		templateFile: readTemplateFile(configuration),
 		temporaryIgnore: readTemporaryIgnore(configuration),
-		safetyEnabled: readSafetyEnabled(configuration),
-		fileSizeWarnBytes: readFileSizeWarnBytes(configuration),
-		maxFilesWarn: readMaxFilesWarn(configuration),
-		maxTotalSizeWarn: readMaxTotalSizeWarn(configuration),
-		maxProcessingTimeWarn: readMaxProcessingTimeWarn(configuration),
-		performanceEnabled: readPerformanceEnabled(configuration),
-		performanceMaxDuration: readPerformanceMaxDuration(configuration),
-		performanceMaxMemoryUsage: readPerformanceMaxMemoryUsage(configuration),
-		performanceMaxCpuUsage: readPerformanceMaxCpuUsage(configuration),
-		performanceMinThroughput: readPerformanceMinThroughput(configuration),
-		performanceMaxCacheSize: readPerformanceMaxCacheSize(configuration),
 	});
 }
 
@@ -112,80 +101,6 @@ function readTemplateFile(configuration: Configuration): string | undefined {
 function readTemporaryIgnore(configuration: Configuration): readonly string[] {
 	const files = configuration.get('temporaryIgnore', []) as string[];
 	return Object.freeze([...files]);
-}
-
-function readSafetyEnabled(configuration: Configuration): boolean {
-	return Boolean(configuration.get('safety.enabled', false));
-}
-
-function readFileSizeWarnBytes(configuration: Configuration): number {
-	const MIN_SIZE = 1024;
-	const DEFAULT_SIZE = 1024 * 1024;
-	const value = Number(
-		configuration.get('safety.fileSizeWarnBytes', DEFAULT_SIZE),
-	);
-	return Math.max(MIN_SIZE, value);
-}
-
-function readMaxFilesWarn(configuration: Configuration): number {
-	const MIN_FILES = 1;
-	const value = Number(configuration.get('safety.maxFilesWarn', 50));
-	return Math.max(MIN_FILES, value);
-}
-
-function readMaxTotalSizeWarn(configuration: Configuration): number {
-	const MIN_SIZE = 1024 * 1024;
-	const DEFAULT_SIZE = 5 * 1024 * 1024;
-	const value = Number(
-		configuration.get('safety.maxTotalSizeWarn', DEFAULT_SIZE),
-	);
-	return Math.max(MIN_SIZE, value);
-}
-
-function readMaxProcessingTimeWarn(configuration: Configuration): number {
-	const MIN_TIME = 1000;
-	const value = Number(configuration.get('safety.maxProcessingTimeWarn', 5000));
-	return Math.max(MIN_TIME, value);
-}
-
-function readPerformanceEnabled(configuration: Configuration): boolean {
-	return Boolean(configuration.get('performance.enabled', true));
-}
-
-function readPerformanceMaxDuration(configuration: Configuration): number {
-	const MIN_DURATION = 1000;
-	const value = Number(configuration.get('performance.maxDuration', 5000));
-	return Math.max(MIN_DURATION, value);
-}
-
-function readPerformanceMaxMemoryUsage(configuration: Configuration): number {
-	const MIN_MEMORY = 1048576;
-	const DEFAULT_MEMORY = 104857600;
-	const value = Number(
-		configuration.get('performance.maxMemoryUsage', DEFAULT_MEMORY),
-	);
-	return Math.max(MIN_MEMORY, value);
-}
-
-function readPerformanceMaxCpuUsage(configuration: Configuration): number {
-	const MIN_CPU = 100000;
-	const DEFAULT_CPU = 1000000;
-	const value = Number(
-		configuration.get('performance.maxCpuUsage', DEFAULT_CPU),
-	);
-	return Math.max(MIN_CPU, value);
-}
-
-function readPerformanceMinThroughput(configuration: Configuration): number {
-	const MIN_THROUGHPUT = 100;
-	const value = Number(configuration.get('performance.minThroughput', 1000));
-	return Math.max(MIN_THROUGHPUT, value);
-}
-
-function readPerformanceMaxCacheSize(configuration: Configuration): number {
-	const MIN_CACHE = 100;
-	const value = Number(configuration.get('performance.maxCacheSize', 1000));
-	return Math.max(MIN_CACHE, value);
 }
 
 function isValidNotificationLevel(v: unknown): v is NotificationLevel {

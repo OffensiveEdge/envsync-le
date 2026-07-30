@@ -13,7 +13,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^2.2.0",
 		"@types/node": "^24.3.0",
-		"@types/vscode": "^1.70.0",
+		"@types/vscode": "^1.90.0",
 		"@vitest/coverage-v8": "^3.2.4",
 		"@vscode/vsce": "^3.6.0",
 		"esbuild": "^0.28.1",
@@ -21,15 +21,7 @@
 		"vitest": "^3.2.4"
 	},
 	"activationEvents": [
-		"workspaceContains:**/.env*",
-		"onCommand:envsync-le.openSettings",
-		"onCommand:envsync-le.showIssues",
-		"onCommand:envsync-le.compareSelected",
-		"onCommand:envsync-le.setTemplate",
-		"onCommand:envsync-le.clearTemplate",
-		"onCommand:envsync-le.ignoreFile",
-		"onCommand:envsync-le.stopIgnoring",
-		"onCommand:envsync-le.clearAllIgnored"
+		"workspaceContains:**/.env*"
 	],
 	"bugs": {
 		"url": "https://github.com/OffensiveEdge/envsync-le/issues"
@@ -109,12 +101,12 @@
 			"explorer/context": [
 				{
 					"command": "envsync-le.compareSelected",
-					"when": "resourceExtname == .env || resourceFilename =~ /^\\.env\\./",
+					"when": "resourceFilename =~ /^\\.env\\.|\\.env$/",
 					"group": "dotsync@1"
 				},
 				{
 					"command": "envsync-le.ignoreFile",
-					"when": "resourceExtname == .env || resourceFilename =~ /^\\.env\\./",
+					"when": "resourceFilename =~ /^\\.env\\.|\\.env$/",
 					"group": "dotsync@2"
 				}
 			]
@@ -220,114 +212,6 @@
 					},
 					"default": [],
 					"description": "%manifest.settings.temporary-ignore.desc%"
-				},
-				"envsync-le.safety.enabled": {
-					"type": "boolean",
-					"default": false,
-					"description": "%manifest.settings.safety.enabled.desc%"
-				},
-				"envsync-le.safety.fileSizeWarnBytes": {
-					"type": "number",
-					"default": 1048576,
-					"minimum": 1024,
-					"description": "%manifest.settings.safety.file-size-warn.desc%"
-				},
-				"envsync-le.safety.maxFilesWarn": {
-					"type": "number",
-					"default": 50,
-					"minimum": 1,
-					"description": "%manifest.settings.safety.max-files-warn.desc%"
-				},
-				"envsync-le.safety.maxTotalSizeWarn": {
-					"type": "number",
-					"default": 5242880,
-					"minimum": 1048576,
-					"description": "%manifest.settings.safety.max-total-size-warn.desc%"
-				},
-				"envsync-le.safety.maxProcessingTimeWarn": {
-					"type": "number",
-					"default": 5000,
-					"minimum": 1000,
-					"description": "%manifest.settings.safety.max-processing-time-warn.desc%"
-				},
-				"envsync-le.performance.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "%manifest.settings.performance.enabled.desc%"
-				},
-				"envsync-le.performance.maxDuration": {
-					"type": "number",
-					"default": 5000,
-					"minimum": 1000,
-					"description": "%manifest.settings.performance.max-duration.desc%"
-				},
-				"envsync-le.performance.maxMemoryUsage": {
-					"type": "number",
-					"default": 104857600,
-					"minimum": 1048576,
-					"description": "%manifest.settings.performance.max-memory.desc%"
-				},
-				"envsync-le.performance.maxCpuUsage": {
-					"type": "number",
-					"default": 1000000,
-					"minimum": 100000,
-					"description": "%manifest.settings.performance.max-cpu.desc%"
-				},
-				"envsync-le.performance.minThroughput": {
-					"type": "number",
-					"default": 1000,
-					"minimum": 100,
-					"description": "%manifest.settings.performance.min-throughput.desc%"
-				},
-				"envsync-le.performance.maxCacheSize": {
-					"type": "number",
-					"default": 1000,
-					"minimum": 100,
-					"description": "%manifest.settings.performance.max-cache.desc%"
-				},
-				"envsync-le.keyboard.shortcuts.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "%manifest.settings.keyboard.shortcuts.enabled.desc%"
-				},
-				"envsync-le.keyboard.showIssuesShortcut": {
-					"type": "string",
-					"default": "ctrl+alt+e",
-					"description": "%manifest.settings.keyboard.show-issues.shortcut.desc%"
-				},
-				"envsync-le.keyboard.compareShortcut": {
-					"type": "string",
-					"default": "ctrl+alt+c",
-					"description": "%manifest.settings.keyboard.compare.shortcut.desc%"
-				},
-				"envsync-le.keyboard.setTemplateShortcut": {
-					"type": "string",
-					"default": "ctrl+alt+t",
-					"description": "%manifest.settings.keyboard.set-template.shortcut.desc%"
-				},
-				"envsync-le.presets.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "%manifest.settings.presets.enabled.desc%"
-				},
-				"envsync-le.presets.defaultPreset": {
-					"type": "string",
-					"default": "balanced",
-					"enum": [
-						"minimal",
-						"balanced",
-						"comprehensive",
-						"performance",
-						"template"
-					],
-					"enumDescriptions": [
-						"%manifest.settings.presets.default.option.minimal%",
-						"%manifest.settings.presets.default.option.balanced%",
-						"%manifest.settings.presets.default.option.comprehensive%",
-						"%manifest.settings.presets.default.option.performance%",
-						"%manifest.settings.presets.default.option.template%"
-					],
-					"description": "%manifest.settings.presets.default.desc%"
 				}
 			}
 		}
@@ -335,7 +219,7 @@
 	"description": "Zero Hassle .env Sync- Effortlessly detect, compare, and synchronize .env files across your workspace with visual diff.",
 	"displayName": "EnvSync-LE",
 	"engines": {
-		"vscode": "^1.70.0",
+		"vscode": "^1.90.0",
 		"node": ">=20.0.0"
 	},
 	"homepage": "https://github.com/OffensiveEdge/envsync-le#readme",
