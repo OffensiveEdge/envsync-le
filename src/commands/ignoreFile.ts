@@ -78,7 +78,7 @@ export function registerIgnoreFileCommand(
 					await detector.checkSync();
 
 					ui.showInformationMessage(
-						`Temporarily ignoring ${relativePath}. Use "Stop Ignoring" to re-enable.`,
+						`Temporarily ignoring ${relativePath}. Use "Unignore File" to re-enable.`,
 					);
 				} catch (error) {
 					ui.showErrorMessage(`Failed to ignore file: ${errorMessage(error)}`);

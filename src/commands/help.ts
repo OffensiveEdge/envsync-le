@@ -16,15 +16,15 @@ export function registerHelpCommand(
 # EnvSync-LE Help
 
 ## Commands
-- **Show Issues** (Ctrl+Alt+S / Cmd+Alt+S): Run a sync check and open a markdown report of missing keys and parse errors
-- **Compare Selected**: Compare the key sets of two or more selected .env files
+- **Show Details** (Ctrl+Alt+S / Cmd+Alt+S): Run a sync check and open a markdown report of missing keys and parse errors
+- **Compare Files**: Compare the key sets of two or more selected .env files
 - **Set Template**: Mark a .env file as the reference template; all files are compared against it
 - **Clear Template**: Remove the template and return to automatic comparison
 - **Ignore File**: Exclude a .env file from sync checking
-- **Stop Ignoring**: Re-include a previously ignored .env file
-- **Clear All Ignored**: Empty the ignore list
+- **Unignore File**: Re-include a previously ignored .env file
+- **Clear Ignored Files**: Empty the ignore list
 - **Open Settings**: Open VS Code settings filtered to EnvSync-LE
-- **Help**: Open this document
+- **Help & Troubleshooting**: Open this document
 
 ## What EnvSync-LE Does
 EnvSync-LE compares the variable names (keys) across the .env files in
@@ -38,7 +38,7 @@ does not read or compare values.
 
 ## Quick Start
 1. Open a workspace containing more than one .env file (.env, .env.local, ...)
-2. Press **Ctrl+Alt+S** (Mac: **Cmd+Alt+S**) or run "EnvSync-LE: Show Issues"
+2. Press **Ctrl+Alt+S** (Mac: **Cmd+Alt+S**) or run "EnvSync-LE: Show Details"
 3. Review the report of missing keys per file
 4. Optionally set a template file as the source of truth
 

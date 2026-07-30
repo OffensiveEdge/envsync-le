@@ -1,6 +1,6 @@
 {
 	"name": "envsync-le",
-	"version": "1.8.1",
+	"version": "2.0.0",
 	"author": {
 		"name": "nolindnaidoo",
 		"url": "https://github.com/nolindnaidoo"
@@ -37,7 +37,7 @@
 			"description": "%manifest.capability.virtual-workspaces.desc%"
 		},
 		"untrustedWorkspaces": {
-			"supported": "limited",
+			"supported": false,
 			"description": "%manifest.capability.untrusted-workspaces.desc%"
 		}
 	},
@@ -216,7 +216,7 @@
 			}
 		}
 	},
-	"description": "Zero Hassle .env Sync- Effortlessly detect, compare, and synchronize .env files across your workspace with visual diff.",
+	"description": "Spot missing keys across your .env files - automatic checks, a status bar counter, and a markdown report. Auto, manual, and template comparison modes.",
 	"displayName": "EnvSync-LE",
 	"engines": {
 		"vscode": "^1.90.0",
