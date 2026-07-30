@@ -233,3 +233,36 @@ describe('areFilesInSync', () => {
 		expect(areFilesInSync(files)).toBe(false);
 	});
 });
+
+describe('caseSensitive option', () => {
+	const file = (path: string, keys: string[]): DotenvFile => ({
+		path,
+		type: 'base',
+		keys: Object.freeze(keys),
+		lastModified: 1700000000000,
+	});
+
+	it('treats differently-cased keys as distinct by default', () => {
+		const files = [file('.env', ['DB_URL']), file('.env.local', ['db_url'])];
+		const result = compareFiles(files);
+		expect(result.status).toBe('missing-keys');
+		expect(result.missingKeys).toHaveLength(2);
+	});
+
+	it('treats differently-cased keys as equal when caseSensitive is false', () => {
+		const files = [file('.env', ['DB_URL']), file('.env.local', ['db_url'])];
+		const result = compareFiles(files, { caseSensitive: false });
+		expect(result.status).toBe('in-sync');
+		expect(result.missingKeys).toHaveLength(0);
+	});
+
+	it('reports reference-cased key names when case-insensitive', () => {
+		const files = [
+			file('.env', ['API_KEY', 'PORT']),
+			file('.env.local', ['api_key']),
+		];
+		const result = compareFiles(files, { caseSensitive: false });
+		expect(result.missingKeys).toHaveLength(1);
+		expect(result.missingKeys[0]?.keys).toEqual(['PORT']);
+	});
+});

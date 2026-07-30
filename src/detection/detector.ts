@@ -62,11 +62,16 @@ export function createDetector(
 	function buildCompareOptions(
 		files: DotenvFile[],
 		config: ReturnType<typeof readConfig>,
-	): { mode: 'auto' | 'template'; templatePath?: string } {
+	): {
+		mode: 'auto' | 'template';
+		templatePath?: string;
+		caseSensitive: boolean;
+	} {
+		const caseSensitive = config.caseSensitive;
 		const isTemplateMode = config.comparisonMode === 'template';
 
 		if (!isTemplateMode || !config.templateFile) {
-			return { mode: 'auto' };
+			return { mode: 'auto', caseSensitive };
 		}
 
 		const templatePath = findTemplatePath(files, config.templateFile);
@@ -75,11 +80,13 @@ export function createDetector(
 			return {
 				mode: 'template',
 				templatePath,
+				caseSensitive,
 			};
 		}
 
 		return {
 			mode: 'template',
+			caseSensitive,
 		};
 	}
 

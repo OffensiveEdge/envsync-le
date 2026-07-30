@@ -3,6 +3,7 @@ import type { DotenvFile, KeyMismatch, SyncReport, SyncStatus } from '../types';
 interface CompareOptions {
 	mode?: 'auto' | 'template';
 	templatePath?: string;
+	caseSensitive?: boolean;
 }
 
 export function compareFiles(
@@ -13,8 +14,9 @@ export function compareFiles(
 		return createEmptyReport();
 	}
 
+	const caseSensitive = options?.caseSensitive ?? true;
 	const referenceKeys = collectReferenceKeys(files, options);
-	const missingKeys = findMissingKeys(files, referenceKeys);
+	const missingKeys = findMissingKeys(files, referenceKeys, caseSensitive);
 	const status = determineStatus(missingKeys);
 
 	return {
@@ -89,20 +91,25 @@ function collectAllKeys(files: readonly DotenvFile[]): Set<string> {
 	return allKeys;
 }
 
+function normalizeKey(key: string, caseSensitive: boolean): string {
+	return caseSensitive ? key : key.toLowerCase();
+}
+
 function findMissingKeys(
 	files: readonly DotenvFile[],
 	referenceKeys: Set<string>,
+	caseSensitive: boolean,
 ): KeyMismatch[] {
 	const mismatches: KeyMismatch[] = [];
 
 	for (const file of files) {
-		const missing = findMissingKeysInFile(file, referenceKeys);
+		const missing = findMissingKeysInFile(file, referenceKeys, caseSensitive);
 
 		if (missing.length === 0) {
 			continue;
 		}
 
-		const reference = findReferenceFile(files, file, missing);
+		const reference = findReferenceFile(files, file, missing, caseSensitive);
 
 		mismatches.push({
 			filepath: file.path,
@@ -117,12 +124,15 @@ function findMissingKeys(
 function findMissingKeysInFile(
 	file: DotenvFile,
 	referenceKeys: Set<string>,
+	caseSensitive: boolean,
 ): string[] {
-	const fileKeys = new Set(file.keys);
+	const fileKeys = new Set(
+		file.keys.map((key) => normalizeKey(key, caseSensitive)),
+	);
 	const missing: string[] = [];
 
 	for (const key of referenceKeys) {
-		if (!fileKeys.has(key)) {
+		if (!fileKeys.has(normalizeKey(key, caseSensitive))) {
 			missing.push(key);
 		}
 	}
@@ -134,14 +144,24 @@ function findReferenceFile(
 	files: readonly DotenvFile[],
 	currentFile: DotenvFile,
 	missingKeys: string[],
+	caseSensitive: boolean,
 ): DotenvFile | undefined {
 	return files.find(
-		(file) => file.path !== currentFile.path && hasAllKeys(file, missingKeys),
+		(file) =>
+			file.path !== currentFile.path &&
+			hasAllKeys(file, missingKeys, caseSensitive),
 	);
 }
 
-function hasAllKeys(file: DotenvFile, keys: string[]): boolean {
-	return keys.every((key) => file.keys.includes(key));
+function hasAllKeys(
+	file: DotenvFile,
+	keys: string[],
+	caseSensitive: boolean,
+): boolean {
+	const fileKeys = new Set(
+		file.keys.map((key) => normalizeKey(key, caseSensitive)),
+	);
+	return keys.every((key) => fileKeys.has(normalizeKey(key, caseSensitive)));
 }
 
 function determineStatus(missingKeys: KeyMismatch[]): SyncStatus {
