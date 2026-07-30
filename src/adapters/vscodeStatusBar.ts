@@ -5,16 +5,17 @@ import type { StatusBar } from '../interfaces/statusBar';
 import type { SyncStatus } from '../types';
 
 interface VSCodeDependencies {
-	window: typeof vscode.window; // Modified
-	StatusBarAlignment: typeof vscode.StatusBarAlignment; // Modified
-	ThemeColor: typeof vscode.ThemeColor; // Modified
+	window: typeof vscode.window;
+	StatusBarAlignment: typeof vscode.StatusBarAlignment;
+	ThemeColor: typeof vscode.ThemeColor;
+	onDidChangeConfiguration: typeof vscode.workspace.onDidChangeConfiguration;
 	readConfig: typeof readConfig;
 }
 
 export function createVSCodeStatusBar(
-	context: vscode.ExtensionContext, // Modified
+	context: vscode.ExtensionContext,
 	deps: VSCodeDependencies,
-	configuration?: Configuration,
+	configuration: Configuration,
 ): StatusBar {
 	const statusBarItem = deps.window.createStatusBarItem(
 		deps.StatusBarAlignment.Left,
@@ -22,24 +23,36 @@ export function createVSCodeStatusBar(
 	);
 	context.subscriptions.push(statusBarItem);
 
-	function updateStatus(status: SyncStatus, issueCount: number): void {
-		const config = deps.readConfig(
-			configuration ?? createDefaultConfiguration(),
-		);
+	let lastStatus: SyncStatus = 'no-files';
+	let lastIssueCount = 0;
 
-		if (!config.statusBarEnabled) {
+	function render(): void {
+		const config = deps.readConfig(configuration);
+
+		if (!config.statusBarEnabled || shouldHideStatusBar(lastStatus)) {
 			statusBarItem.hide();
 			return;
 		}
 
-		if (shouldHideStatusBar(status)) {
-			statusBarItem.hide();
-			return;
-		}
-
-		applyStatusConfiguration(statusBarItem, status, issueCount, deps);
+		applyStatusConfiguration(statusBarItem, lastStatus, lastIssueCount, deps);
 		statusBarItem.show();
 	}
+
+	function updateStatus(status: SyncStatus, issueCount: number): void {
+		lastStatus = status;
+		lastIssueCount = issueCount;
+		render();
+	}
+
+	// The item was previously rendered once from a config snapshot;
+	// toggling statusBar.enabled did nothing until reload.
+	context.subscriptions.push(
+		deps.onDidChangeConfiguration((event) => {
+			if (event.affectsConfiguration('envsync-le.statusBar.enabled')) {
+				render();
+			}
+		}),
+	);
 
 	function dispose(): void {
 		statusBarItem.dispose();
@@ -49,13 +62,6 @@ export function createVSCodeStatusBar(
 		updateStatus,
 		dispose,
 	});
-}
-
-function createDefaultConfiguration(): Configuration {
-	return {
-		get: <T>(_k: string, d: T) => d,
-		has: () => false,
-	};
 }
 
 function shouldHideStatusBar(status: SyncStatus): boolean {

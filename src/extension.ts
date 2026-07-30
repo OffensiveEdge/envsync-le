@@ -22,12 +22,17 @@ export function activate(context: vscode.ExtensionContext): void {
 		{ window: vscode.window, readConfig: readConfig },
 		configuration,
 	);
-	const statusBar = createVSCodeStatusBar(context, {
-		window: vscode.window,
-		StatusBarAlignment: vscode.StatusBarAlignment,
-		ThemeColor: vscode.ThemeColor,
-		readConfig: readConfig,
-	});
+	const statusBar = createVSCodeStatusBar(
+		context,
+		{
+			window: vscode.window,
+			StatusBarAlignment: vscode.StatusBarAlignment,
+			ThemeColor: vscode.ThemeColor,
+			onDidChangeConfiguration: vscode.workspace.onDidChangeConfiguration,
+			readConfig: readConfig,
+		},
+		configuration,
+	);
 	const fileSystem = createVSCodeFileSystem({
 		Uri: vscode.Uri,
 		workspaceFs: vscode.workspace.fs,

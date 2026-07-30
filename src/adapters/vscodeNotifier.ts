@@ -10,12 +10,10 @@ interface VSCodeDependencies {
 
 export function createVSCodeNotifier(
 	deps: VSCodeDependencies,
-	configuration?: Configuration,
+	configuration: Configuration,
 ): Notifier {
 	function getNotificationLevel(): 'all' | 'important' | 'silent' {
-		const config = deps.readConfig(
-			configuration ?? createDefaultConfiguration(),
-		);
+		const config = deps.readConfig(configuration);
 		return config.notificationLevel;
 	}
 
@@ -80,13 +78,6 @@ export function createVSCodeNotifier(
 		showError,
 		showParseError,
 	});
-}
-
-function createDefaultConfiguration(): Configuration {
-	return {
-		get: <T>(_k: string, d: T) => d,
-		has: () => false,
-	};
 }
 
 function shouldSuppressNotification(level: string): boolean {
