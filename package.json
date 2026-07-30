@@ -1,10 +1,6 @@
 {
 	"name": "envsync-le",
-	"publisher": "OffensiveEdge",
-	"displayName": "EnvSync-LE",
-	"description": "Zero Hassle .env Sync- Effortlessly detect, compare, and synchronize .env files across your workspace with visual diff.",
 	"version": "1.8.1",
-	"license": "MIT",
 	"author": {
 		"name": "OffensiveEdge",
 		"url": "https://github.com/OffensiveEdge"
@@ -13,37 +9,17 @@
 		"type": "git",
 		"url": "https://github.com/OffensiveEdge/envsync-le.git"
 	},
-	"bugs": {
-		"url": "https://github.com/OffensiveEdge/envsync-le/issues"
-	},
-	"homepage": "https://github.com/OffensiveEdge/envsync-le#readme",
-	"engines": {
-		"vscode": "^1.70.0",
-		"node": ">=20.0.0"
-	},
-	"categories": [
-		"Other",
-		"Programming Languages",
-		"Linters"
-	],
-	"keywords": [
-		"env",
-		"dotenv",
-		"environment",
-		"sync",
-		"compare",
-		"diff",
-		"config",
-		"settings",
-		"workspace",
-		"monorepo",
-		"consistency",
-		"developer-tools",
-		"ci",
-		"team"
-	],
-	"icon": "src/assets/images/icon.png",
 	"main": "./dist/extension.js",
+	"devDependencies": {
+		"@biomejs/biome": "^2.2.0",
+		"@types/node": "^24.3.0",
+		"@types/vscode": "^1.70.0",
+		"@vitest/coverage-v8": "^3.2.4",
+		"@vscode/vsce": "^3.6.0",
+		"esbuild": "^0.28.1",
+		"typescript": "^5.5.3",
+		"vitest": "^3.2.4"
+	},
 	"activationEvents": [
 		"workspaceContains:**/.env*",
 		"onCommand:envsync-le.openSettings",
@@ -55,6 +31,9 @@
 		"onCommand:envsync-le.stopIgnoring",
 		"onCommand:envsync-le.clearAllIgnored"
 	],
+	"bugs": {
+		"url": "https://github.com/OffensiveEdge/envsync-le/issues"
+	},
 	"capabilities": {
 		"virtualWorkspaces": {
 			"supported": "limited",
@@ -65,6 +44,11 @@
 			"description": "%manifest.capability.untrusted-workspaces.desc%"
 		}
 	},
+	"categories": [
+		"Other",
+		"Programming Languages",
+		"Linters"
+	],
 	"contributes": {
 		"commands": [
 			{
@@ -348,6 +332,32 @@
 			}
 		}
 	},
+	"description": "Zero Hassle .env Sync- Effortlessly detect, compare, and synchronize .env files across your workspace with visual diff.",
+	"displayName": "EnvSync-LE",
+	"engines": {
+		"vscode": "^1.70.0",
+		"node": ">=20.0.0"
+	},
+	"homepage": "https://github.com/OffensiveEdge/envsync-le#readme",
+	"icon": "src/assets/images/icon.png",
+	"keywords": [
+		"env",
+		"dotenv",
+		"environment",
+		"sync",
+		"compare",
+		"diff",
+		"config",
+		"settings",
+		"workspace",
+		"monorepo",
+		"consistency",
+		"developer-tools",
+		"ci",
+		"team"
+	],
+	"license": "MIT",
+	"publisher": "OffensiveEdge",
 	"scripts": {
 		"clean": "node -e \"const fs=require('fs');['dist','coverage','release'].forEach(d=>fs.rmSync(d,{recursive:true,force:true}))\"",
 		"clean:i18n": "node -e \"const fs=require('fs');fs.readdirSync('.').filter(f=>f.startsWith('package.nls.')&&f.endsWith('.json')&&f!=='package.nls.json').forEach(f=>fs.unlinkSync(f))\"",
@@ -364,18 +374,5 @@
 		"lint:fix": "biome check --write src/",
 		"vscode:prepublish": "npm run typecheck && npm run build:prod && npm run check:bundle && npm run copy:i18n",
 		"package": "node -e \"require('fs').mkdirSync('release',{recursive:true})\" && vsce package --out release/ && npm run clean:i18n"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "^2.2.0",
-		"@types/node": "^24.3.0",
-		"@types/vscode": "^1.70.0",
-		"@vitest/coverage-v8": "^3.2.4",
-		"@vscode/vsce": "^3.6.0",
-		"esbuild": "^0.28.1",
-		"typescript": "^5.5.3",
-		"vitest": "^3.2.4"
-	},
-	"dependencies": {
-		"dotenv": "^17.2.3"
 	}
 }

@@ -9,4 +9,3 @@ export type {
 	QuickPickOptions,
 	UserInterface,
 } from './userInterface';
-export type { Workspace } from './workspace';

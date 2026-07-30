@@ -54,11 +54,6 @@ export function createVSCodeStatusBar(
 function createDefaultConfiguration(): Configuration {
 	return {
 		get: <T>(_k: string, d: T) => d,
-		getSection: () => ({
-			get: <T>(_k: string, d: T) => d,
-			getSection: () => ({}) as never,
-			has: () => false,
-		}),
 		has: () => false,
 	};
 }

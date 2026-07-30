@@ -45,9 +45,6 @@ const createMockConfiguration = (): Configuration => ({
 		};
 		return values[key] ?? defaultValue;
 	}) as Configuration['get'],
-	getSection: vi.fn(() =>
-		createMockConfiguration(),
-	) as Configuration['getSection'],
 	has: vi.fn(() => false),
 });
 

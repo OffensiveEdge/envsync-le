@@ -6,7 +6,6 @@ function makeConfig(values: Record<string, unknown> = {}): Configuration {
 	return {
 		get: <T>(key: string, defaultValue: T): T =>
 			key in values ? (values[key] as T) : defaultValue,
-		getSection: () => makeConfig(),
 		has: (key: string) => key in values,
 	};
 }
