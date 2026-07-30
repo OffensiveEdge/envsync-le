@@ -1,0 +1,428 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`comparator characterization > auto mode unions keys and attributes a reference 1`] = `
+{
+  "errors": [],
+  "extraKeys": [],
+  "files": [
+    {
+      "keys": [
+        "A",
+        "B",
+        "C",
+      ],
+      "lastModified": 1700000000000,
+      "path": ".env",
+      "type": "base",
+    },
+    {
+      "keys": [
+        "A",
+      ],
+      "lastModified": 1700000000000,
+      "path": ".env.local",
+      "type": "local",
+    },
+    {
+      "keys": [
+        "A",
+        "B",
+      ],
+      "lastModified": 1700000000000,
+      "path": ".env.production",
+      "type": "production",
+    },
+  ],
+  "lastChecked": Any<Number>,
+  "missingKeys": [
+    {
+      "filepath": ".env.local",
+      "keys": [
+        "B",
+        "C",
+      ],
+      "reference": ".env",
+    },
+    {
+      "filepath": ".env.production",
+      "keys": [
+        "C",
+      ],
+      "reference": ".env",
+    },
+  ],
+  "status": "missing-keys",
+}
+`;
+
+exports[`comparator characterization > case difference treated as distinct keys 1`] = `
+{
+  "errors": [],
+  "extraKeys": [],
+  "files": [
+    {
+      "keys": [
+        "DB_URL",
+      ],
+      "lastModified": 1700000000000,
+      "path": ".env",
+      "type": "base",
+    },
+    {
+      "keys": [
+        "db_url",
+      ],
+      "lastModified": 1700000000000,
+      "path": ".env.local",
+      "type": "local",
+    },
+  ],
+  "lastChecked": Any<Number>,
+  "missingKeys": [
+    {
+      "filepath": ".env",
+      "keys": [
+        "db_url",
+      ],
+      "reference": ".env.local",
+    },
+    {
+      "filepath": ".env.local",
+      "keys": [
+        "DB_URL",
+      ],
+      "reference": ".env",
+    },
+  ],
+  "status": "missing-keys",
+}
+`;
+
+exports[`comparator characterization > empty file list 1`] = `
+{
+  "errors": [],
+  "extraKeys": [],
+  "files": [],
+  "lastChecked": Any<Number>,
+  "missingKeys": [],
+  "status": "no-files",
+}
+`;
+
+exports[`comparator characterization > no single file holds all missing keys -> "other files" 1`] = `
+{
+  "errors": [],
+  "extraKeys": [],
+  "files": [
+    {
+      "keys": [
+        "A",
+        "X",
+      ],
+      "lastModified": 1700000000000,
+      "path": ".env",
+      "type": "base",
+    },
+    {
+      "keys": [
+        "A",
+        "Y",
+      ],
+      "lastModified": 1700000000000,
+      "path": ".env.local",
+      "type": "local",
+    },
+    {
+      "keys": [
+        "A",
+      ],
+      "lastModified": 1700000000000,
+      "path": ".env.production",
+      "type": "production",
+    },
+  ],
+  "lastChecked": Any<Number>,
+  "missingKeys": [
+    {
+      "filepath": ".env",
+      "keys": [
+        "Y",
+      ],
+      "reference": ".env.local",
+    },
+    {
+      "filepath": ".env.local",
+      "keys": [
+        "X",
+      ],
+      "reference": ".env",
+    },
+    {
+      "filepath": ".env.production",
+      "keys": [
+        "X",
+        "Y",
+      ],
+      "reference": "other files",
+    },
+  ],
+  "status": "missing-keys",
+}
+`;
+
+exports[`comparator characterization > template mode compares against template keys only 1`] = `
+{
+  "errors": [],
+  "extraKeys": [],
+  "files": [
+    {
+      "keys": [
+        "A",
+        "B",
+      ],
+      "lastModified": 1700000000000,
+      "path": ".env.example",
+      "type": "example",
+    },
+    {
+      "keys": [
+        "A",
+        "B",
+        "EXTRA",
+      ],
+      "lastModified": 1700000000000,
+      "path": ".env",
+      "type": "base",
+    },
+    {
+      "keys": [
+        "A",
+      ],
+      "lastModified": 1700000000000,
+      "path": ".env.local",
+      "type": "local",
+    },
+  ],
+  "lastChecked": Any<Number>,
+  "missingKeys": [
+    {
+      "filepath": ".env.local",
+      "keys": [
+        "B",
+      ],
+      "reference": ".env.example",
+    },
+  ],
+  "status": "missing-keys",
+}
+`;
+
+exports[`comparator characterization > template path not in files falls back to union 1`] = `
+{
+  "errors": [],
+  "extraKeys": [],
+  "files": [
+    {
+      "keys": [
+        "A",
+      ],
+      "lastModified": 1700000000000,
+      "path": ".env",
+      "type": "base",
+    },
+    {
+      "keys": [
+        "A",
+        "B",
+      ],
+      "lastModified": 1700000000000,
+      "path": ".env.local",
+      "type": "local",
+    },
+  ],
+  "lastChecked": Any<Number>,
+  "missingKeys": [
+    {
+      "filepath": ".env",
+      "keys": [
+        "B",
+      ],
+      "reference": ".env.local",
+    },
+  ],
+  "status": "missing-keys",
+}
+`;
+
+exports[`comparator characterization > two files in sync 1`] = `
+{
+  "errors": [],
+  "extraKeys": [],
+  "files": [
+    {
+      "keys": [
+        "A",
+        "B",
+      ],
+      "lastModified": 1700000000000,
+      "path": ".env",
+      "type": "base",
+    },
+    {
+      "keys": [
+        "A",
+        "B",
+      ],
+      "lastModified": 1700000000000,
+      "path": ".env.local",
+      "type": "local",
+    },
+  ],
+  "lastChecked": Any<Number>,
+  "missingKeys": [],
+  "status": "in-sync",
+}
+`;
+
+exports[`detectFileType characterization > classifies filenames 1`] = `
+{
+  ".env": "base",
+  ".env.dev": "development",
+  ".env.development": "development",
+  ".env.development.local": "local",
+  ".env.example": "example",
+  ".env.local": "local",
+  ".env.prod": "production",
+  ".env.production": "production",
+  ".env.production.local": "local",
+  ".env.staging": "base",
+  ".env.template": "example",
+  ".env.test": "test",
+  "/deep/path/.env": "base",
+  "C:\\project\\.env": "base",
+  "C:\\project\\.env.local": "local",
+  "app.device.env": "development",
+  "foo.test.env": "test",
+}
+`;
+
+exports[`parser characterization > parses basic.env 1`] = `
+{
+  "errors": [],
+  "keys": [
+    "DATABASE_URL",
+    "API_KEY",
+    "DEBUG",
+    "PORT",
+    "ENABLE_CACHE",
+    "EMPTY_VALUE",
+    "QUOTED",
+    "SINGLE_QUOTED",
+    "URL_WITH_EQUALS",
+  ],
+  "success": true,
+}
+`;
+
+exports[`parser characterization > parses tricky.env 1`] = `
+{
+  "errors": [
+    {
+      "filepath": "tricky.env",
+      "message": "Line 2: Invalid key format "export EXPORTED_KEY"",
+      "type": "parse-error",
+    },
+    {
+      "filepath": "tricky.env",
+      "message": "Line 4: Missing equals sign in "line two""",
+      "type": "parse-error",
+    },
+    {
+      "filepath": "tricky.env",
+      "message": "Line 5: Missing equals sign in "NO_EQUALS_LINE"",
+      "type": "parse-error",
+    },
+    {
+      "filepath": "tricky.env",
+      "message": "Line 6: Empty key before equals sign",
+      "type": "parse-error",
+    },
+    {
+      "filepath": "tricky.env",
+      "message": "Line 7: Invalid key format "KEY WITH SPACES"",
+      "type": "parse-error",
+    },
+    {
+      "filepath": "tricky.env",
+      "message": "Line 8: Invalid key format "INVALID!CHARS"",
+      "type": "parse-error",
+    },
+  ],
+  "keys": [
+    "MULTILINE",
+    "lowercase_key",
+    "DASH-KEY",
+    "DUPLICATE",
+    "DUPLICATE",
+    "SPACED_KEY",
+    "TAB_INDENTED",
+    "INLINE_COMMENT",
+    "QUOTED_HASH",
+  ],
+  "success": true,
+}
+`;
+
+exports[`shouldExcludeFile characterization > matches exclude globs 1`] = `
+[
+  {
+    "excluded": true,
+    "path": ".env.staging.local",
+    "patterns": [
+      ".env.*.local",
+    ],
+  },
+  {
+    "excluded": false,
+    "path": "config/.env.staging.local",
+    "patterns": [
+      ".env.*.local",
+    ],
+  },
+  {
+    "excluded": true,
+    "path": "config/.env.staging.local",
+    "patterns": [
+      "**/.env.*.local",
+    ],
+  },
+  {
+    "excluded": true,
+    "path": ".env.local",
+    "patterns": [
+      "*.local",
+    ],
+  },
+  {
+    "excluded": true,
+    "path": "a/b/.env",
+    "patterns": [
+      "**/.env",
+    ],
+  },
+  {
+    "excluded": true,
+    "path": ".env",
+    "patterns": [
+      ".env",
+    ],
+  },
+  {
+    "excluded": false,
+    "path": "sub/.env",
+    "patterns": [
+      ".env",
+    ],
+  },
+]
+`;
