@@ -71,6 +71,9 @@ status bar toggle, debounce delay, and comparison mode.
 ## Support
 - GitHub Issues: https://github.com/nolindnaidoo/envsync-le/issues
 - Documentation: https://github.com/nolindnaidoo/envsync-le#readme
+- LE Tools: https://letools.dev
+
+Built by nolindnaidoo (https://github.com/nolindnaidoo) — MIT licensed.
 		`.trim();
 
 			const doc = await vscode.workspace.openTextDocument({
