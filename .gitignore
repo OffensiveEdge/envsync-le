@@ -112,3 +112,4 @@ release/
 out-test/
 !test/integration/fixtures/.env
 !test/integration/fixtures/.env.*
+benchmark-results.json
