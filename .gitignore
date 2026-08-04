@@ -113,3 +113,10 @@ out-test/
 !test/integration/fixtures/.env
 !test/integration/fixtures/.env.*
 benchmark-results.json
+
+# samples/ is the demo-recording workspace for this extension, and this
+# extension's entire subject is .env files — the rules above would exclude
+# exactly the content it exists to demonstrate. Scoped to samples/ only, so
+# a real .env anywhere else stays ignored.
+!samples/.env
+!samples/.env.*
