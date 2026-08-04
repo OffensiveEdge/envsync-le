@@ -42,9 +42,9 @@
 		}
 	},
 	"categories": [
-		"Other",
-		"Programming Languages",
-		"Linters"
+		"Linters",
+		"Testing",
+		"Programming Languages"
 	],
 	"contributes": {
 		"commands": [
