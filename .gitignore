@@ -119,4 +119,5 @@ benchmark-results.json
 # exactly the content it exists to demonstrate. Scoped to samples/ only, so
 # a real .env anywhere else stays ignored.
 !samples/.env
-!samples/.env.*
+!samples/.env.example
+!samples/.env.production
