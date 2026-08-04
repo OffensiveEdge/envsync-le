@@ -187,7 +187,7 @@ describe('vscodeStatusBar', () => {
 
 		statusBar.updateStatus('missing-keys', 3);
 		expect(item?.text).toBe('$(file) 3');
-		expect((item?.backgroundColor as ThemeColor).id).toBe(
+		expect((item?.backgroundColor as ThemeColor | undefined)?.id).toBe(
 			'statusBarItem.warningBackground',
 		);
 		expect(item?.command).toBe('envsync-le.showIssues');
@@ -196,7 +196,7 @@ describe('vscodeStatusBar', () => {
 		expect(item?.text).toBe('$(file) 2');
 
 		statusBar.updateStatus('parse-error', 0);
-		expect((item?.backgroundColor as ThemeColor).id).toBe(
+		expect((item?.backgroundColor as ThemeColor | undefined)?.id).toBe(
 			'statusBarItem.errorBackground',
 		);
 
