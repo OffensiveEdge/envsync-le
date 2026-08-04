@@ -270,6 +270,8 @@
 		"test": "vitest run --pool=threads",
 		"test:watch": "vitest --pool=threads",
 		"test:coverage": "vitest run --coverage --pool=threads",
+		"coverage:readme": "node scripts/coverage-readme.js",
+		"coverage:readme:check": "node scripts/coverage-readme.js --check",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
 		"vscode:prepublish": "npm run typecheck && npm run build:prod && npm run check:bundle && npm run copy:i18n",
