@@ -30,7 +30,9 @@ export function registerIgnoreFileCommand(
 					// No file context - let user pick
 					const allEnvFiles = await fileSystem.findFiles('**/.env*', null, 50);
 					if (allEnvFiles.length === 0) {
-						ui.showInformationMessage('No .env files found in workspace');
+						ui.showInformationMessage(
+							vscode.l10n.t('No .env files found in workspace'),
+						);
 						return;
 					}
 
@@ -41,7 +43,7 @@ export function registerIgnoreFileCommand(
 					}));
 
 					const selected = await ui.showQuickPick(picks, {
-						placeHolder: 'Select .env file to ignore',
+						placeHolder: vscode.l10n.t('Select .env file to ignore'),
 					});
 
 					if (!selected || Array.isArray(selected)) return;
@@ -50,7 +52,7 @@ export function registerIgnoreFileCommand(
 
 				// Validate it's an .env file
 				if (!isEnvFileName(targetFile.fsPath)) {
-					ui.showWarningMessage('Please select a .env file');
+					ui.showWarningMessage(vscode.l10n.t('Please select a .env file'));
 					return;
 				}
 
@@ -81,7 +83,9 @@ export function registerIgnoreFileCommand(
 						`Temporarily ignoring ${relativePath}. Use "Unignore File" to re-enable.`,
 					);
 				} catch (error) {
-					ui.showErrorMessage(`Failed to ignore file: ${errorMessage(error)}`);
+					ui.showErrorMessage(
+						vscode.l10n.t('Failed to ignore file: {0}', errorMessage(error)),
+					);
 				}
 			},
 		),
@@ -98,7 +102,9 @@ export function registerIgnoreFileCommand(
 				const currentIgnored = readConfig(configuration).temporaryIgnore;
 
 				if (currentIgnored.length === 0) {
-					ui.showInformationMessage('No files are currently being ignored');
+					ui.showInformationMessage(
+						vscode.l10n.t('No files are currently being ignored'),
+					);
 					return;
 				}
 
@@ -110,12 +116,12 @@ export function registerIgnoreFileCommand(
 					// Show picker of currently ignored files
 					const picks = currentIgnored.map((path) => ({
 						label: path,
-						description: 'Currently ignored',
+						description: vscode.l10n.t('Currently ignored'),
 						value: path,
 					}));
 
 					const selected = await ui.showQuickPick(picks, {
-						placeHolder: 'Select file to stop ignoring',
+						placeHolder: vscode.l10n.t('Select file to stop ignoring'),
 					});
 
 					if (!selected || Array.isArray(selected)) return;
@@ -143,7 +149,9 @@ export function registerIgnoreFileCommand(
 					// Trigger immediate comparison
 					await detector.checkSync();
 
-					ui.showInformationMessage(`No longer ignoring ${targetPath}`);
+					ui.showInformationMessage(
+						vscode.l10n.t('No longer ignoring {0}', targetPath),
+					);
 				} catch (error) {
 					ui.showErrorMessage(
 						`Failed to stop ignoring file: ${errorMessage(error)}`,
@@ -161,12 +169,14 @@ export function registerIgnoreFileCommand(
 			const currentIgnored = readConfig(configuration).temporaryIgnore;
 
 			if (currentIgnored.length === 0) {
-				ui.showInformationMessage('No files are currently being ignored');
+				ui.showInformationMessage(
+					vscode.l10n.t('No files are currently being ignored'),
+				);
 				return;
 			}
 
 			const confirmed = await ui.showWarningMessage(
-				`Stop ignoring all ${currentIgnored.length} files?`,
+				vscode.l10n.t('Stop ignoring all {0} files?', currentIgnored.length),
 				'Yes',
 				'No',
 			);
@@ -184,7 +194,9 @@ export function registerIgnoreFileCommand(
 				await detector.checkSync();
 
 				ui.showInformationMessage(
-					'Cleared ignore list. All .env files will be checked again.',
+					vscode.l10n.t(
+						'Cleared ignore list. All .env files will be checked again.',
+					),
 				);
 			} catch (error) {
 				ui.showErrorMessage(

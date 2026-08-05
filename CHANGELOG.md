@@ -5,14 +5,60 @@ All notable changes to EnvSync-LE will be documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.2] - 2026-08-04
+## [2.1.0] - 2026-08-04
 
 ### Added
+
+- Runtime strings are localized, and this time they render. All 6 of them —
+  notifications, status bar, quick-picks and prompts — go through
+  `vscode.l10n` and ship as twelve translated bundles in `l10n/`. The v1.x
+  line carried manifest catalogues that worked and runtime catalogues that
+  never reached the screen: `vscode-nls` was configured without
+  `__filename`, so every runtime string fell back to English while the VSIX
+  looked correct.
+- An integration test covering both localization mechanisms — manifest
+  substitution, key parity across all thirteen catalogues, and placeholder
+  integrity in every translation. A translation that silently drops `{0}`
+  now fails the build instead of shipping a message with the value missing.
 
 - Dependency review on pull requests, failing on a high-severity addition
   before Dependabot's auto-merge can act.
 
+### Fixed
+
+- Twenty-four user-facing strings were never localized. This repo routes
+  notifications through a `UserInterface` port rather than the notifier the
+  other nine use, so `ui.showWarningMessage(...)` was a channel no earlier
+  localization pass inspected; the status-bar tooltips and the missing-key,
+  extra-key and parse-error message builders were missed for the same reason.
+  Runtime localization now covers the whole surface — 6 strings before this
+  release, 24 after.
+
+### Fixed
+
+- Eight more user-facing strings were never localized — error messages and a
+  confirmation prompt built as template literals, which no property-based pass
+  reaches. This repo routes notifications through a `UserInterface` port
+  rather than the notifier the other nine use, which is why they were missed
+  twice.
+- The initial sync check in `activate` carried an unreachable error handler.
+  `checkSync` resolves with an error report rather than rejecting — it catches
+  internally and routes failures through `handleSyncCheckError`, which already
+  notifies the user and honours `notificationLevel` — so the handler could not
+  fire, and if it ever had it would have reported the same failure a second
+  time behind its own duplicate level check.
+
 ### Changed
+
+- Test coverage raised from 73.27% to 84.59% of branches (82.27% to 90.25% of
+  statements). Five files sat below one of the repo's own floors; none do now.
+  The gap was the three workspace commands — each a chain of file discovery, a
+  quick pick and a comparison, where every step is reachable only by answering
+  the one before it — and the file watcher, whose debounce, in-flight guard and
+  error handling were never exercised because the suite registered it and
+  never fired an event. The commands take their VS Code surface through ports,
+  so they are driven with fakes rather than global mock state.
+
 
 - CI gains fleet-wide checks that no single repo can perform: shared config is
   compared across all ten extensions, and every README link is verified —

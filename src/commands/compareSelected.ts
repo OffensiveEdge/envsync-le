@@ -82,7 +82,7 @@ async function promptUserForFiles(
 	const picks = createFilePicks(allEnvFiles, fileSystem);
 	const selected = await ui.showQuickPick(picks, {
 		canPickMany: true,
-		placeHolder: 'Select .env files to compare',
+		placeHolder: vscode.l10n.t('Select .env files to compare'),
 	});
 
 	if (!selected || (Array.isArray(selected) && selected.length === 0)) {
@@ -100,7 +100,7 @@ async function findAllEnvFiles(
 }
 
 function showNoFilesMessage(ui: UserInterface): void {
-	ui.showInformationMessage('No .env files found in workspace');
+	ui.showInformationMessage(vscode.l10n.t('No .env files found in workspace'));
 }
 
 function createFilePicks(
@@ -128,7 +128,9 @@ function hasMinimumFiles(files: vscode.Uri[]): boolean {
 }
 
 function showMinimumFilesWarning(ui: UserInterface): void {
-	ui.showWarningMessage('Please select at least 2 .env files to compare');
+	ui.showWarningMessage(
+		vscode.l10n.t('Please select at least 2 .env files to compare'),
+	);
 }
 
 function filterEnvFiles(files: vscode.Uri[]): vscode.Uri[] {
@@ -136,7 +138,7 @@ function filterEnvFiles(files: vscode.Uri[]): vscode.Uri[] {
 }
 
 function showMinimumEnvFilesWarning(ui: UserInterface): void {
-	ui.showWarningMessage('Please select at least 2 .env files');
+	ui.showWarningMessage(vscode.l10n.t('Please select at least 2 .env files'));
 }
 
 async function compareFiles(
@@ -160,7 +162,7 @@ async function performComparison(
 	return await ui.showProgress(
 		{
 			location: 'notification',
-			title: 'Comparing selected files...',
+			title: vscode.l10n.t('Comparing selected files...'),
 			cancellable: false,
 		},
 		async () => {
@@ -199,15 +201,19 @@ function showComparisonResult(
 }
 
 function showInSyncMessage(ui: UserInterface): void {
-	ui.showInformationMessage('Selected .env files are in sync');
+	ui.showInformationMessage(vscode.l10n.t('Selected .env files are in sync'));
 }
 
 function showMissingKeysMessage(ui: UserInterface): void {
-	ui.showWarningMessage('Some files are missing keys. See status bar.');
+	ui.showWarningMessage(
+		vscode.l10n.t('Some files are missing keys. See status bar.'),
+	);
 }
 
 function showParseErrorMessage(ui: UserInterface): void {
-	ui.showErrorMessage('Some files could not be parsed. See status bar.');
+	ui.showErrorMessage(
+		vscode.l10n.t('Some files could not be parsed. See status bar.'),
+	);
 }
 
 function showComparisonCompleteMessage(
@@ -220,5 +226,7 @@ function showComparisonCompleteMessage(
 }
 
 function showComparisonError(error: unknown, ui: UserInterface): void {
-	ui.showErrorMessage(`Failed to compare files: ${errorMessage(error)}`);
+	ui.showErrorMessage(
+		vscode.l10n.t('Failed to compare files: {0}', errorMessage(error)),
+	);
 }

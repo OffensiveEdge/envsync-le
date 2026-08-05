@@ -86,8 +86,6 @@ Classification is segment-based on the basename — `app.device.env` is not
 | `envsync-le.temporaryIgnore` | `[]` | Files currently ignored (managed by the ignore commands) |
 | `envsync-le.telemetryEnabled` | `false` | Local-only event log (see Privacy) |
 
-The settings UI is translated into 12 languages besides English.
-
 ## Parsing notes
 
 - Keys must match `[A-Za-z_][A-Za-z0-9_-]*`; anything else left of `=` is
@@ -97,6 +95,19 @@ The settings UI is translated into 12 languages besides English.
   unterminated quote is reported as an error.
 - In `auto` mode the reference is the union of all keys, so "extra keys"
   only exist in `template` mode.
+
+## Languages
+
+Twelve languages besides English:
+
+German · Spanish · French · Indonesian · Italian · Japanese · Korean ·
+Portuguese (Brazil) · Russian · Ukrainian · Vietnamese · Chinese (Simplified)
+
+Both halves are covered — the manifest (command titles, setting names and
+descriptions) and everything shown while the extension runs (notifications,
+the status bar, quick-picks and prompts). The extension follows VS Code's
+display language, so it matches whatever the editor is already set to; no
+setting of its own.
 
 ## Privacy & security
 
@@ -142,12 +153,12 @@ a build only tells you how busy the runner was.
 <!-- coverage:start -->
 | Metric | Coverage |
 | --- | --- |
-| Statements | 82.27% |
-| Branches | 73.27% |
-| Functions | 87.55% |
-| Lines | 83.04% |
+| Statements | 90.25% |
+| Branches | 84.59% |
+| Functions | 94.23% |
+| Lines | 90.41% |
 
-115 test cases across 10 files, plus an integration suite that runs
+145 test cases across 12 files, plus an integration suite that runs
 in a real VS Code extension host and an end-to-end test that installs the
 built `.vsix` into a clean profile.
 

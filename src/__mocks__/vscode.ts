@@ -123,6 +123,20 @@ export function _fireConfigChange(section: string): void {
 
 const fileStore = new Map<string, string>();
 
+/** Make workspace.findFiles reject, for error-path tests. */
+let findFilesError: Error | undefined;
+
+/** Make configuration reads throw, for error-path tests. */
+let configReadError: Error | undefined;
+
+export function _setConfigReadError(error: Error | undefined): void {
+	configReadError = error;
+}
+
+export function _setFindFilesError(error: Error | undefined): void {
+	findFilesError = error;
+}
+
 export function _setFile(path: string, content: string): void {
 	fileStore.set(path, content);
 }
@@ -170,6 +184,8 @@ export const workspace = {
 		},
 	},
 	findFiles: async (_pattern: string, _exclude?: unknown, max?: number) => {
+		// Lets a test drive the failure path of anything that discovers files.
+		if (findFilesError) throw findFilesError;
 		const uris = [...fileStore.keys()].map((p) => Uri.file(p));
 		return max !== undefined ? uris.slice(0, max) : uris;
 	},
@@ -179,6 +195,11 @@ export const workspace = {
 	},
 	getConfiguration: (section?: string) => ({
 		get: <T>(key: string, defaultValue?: T): T | undefined => {
+			// Reading configuration can genuinely fail — a corrupt settings file,
+			// a workspace that has gone away. Several call sites read config
+			// outside their own try, so this is the only way to reach their
+			// callers' error handling.
+			if (configReadError) throw configReadError;
 			const full = section ? `${section}.${key}` : key;
 			return configStore.has(full)
 				? (configStore.get(full) as T)
@@ -424,6 +445,8 @@ export const FileType = {
 
 /** Reset all mutable mock state between tests. */
 export function _resetMockState(): void {
+	findFilesError = undefined;
+	configReadError = undefined;
 	configStore.clear();
 	configUpdates.length = 0;
 	configListeners.length = 0;
@@ -438,3 +461,18 @@ export function _resetMockState(): void {
 	warningResponder = undefined;
 	workspace.workspaceFolders = undefined;
 }
+
+export const l10n = {
+	t(message: string, ...args: unknown[]): string {
+		if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null) {
+			const named = args[0] as Record<string, unknown>;
+			return message.replace(/\{(\w+)\}/g, (whole, key) =>
+				key in named ? String(named[key]) : whole,
+			);
+		}
+		return message.replace(/\{(\d+)\}/g, (whole, index) => {
+			const value = args[Number(index)];
+			return value === undefined ? whole : String(value);
+		});
+	},
+};

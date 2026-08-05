@@ -1,4 +1,4 @@
-import type * as vscode from 'vscode';
+import * as vscode from 'vscode';
 import type { readConfig } from '../config/config';
 import { basename } from '../detection/heuristics';
 import type { Configuration } from '../interfaces';
@@ -100,7 +100,7 @@ function formatMissingKeysMessage(
 	const filename = extractFilename(filepath);
 	const keyList = formatKeyList(keys);
 
-	return `Missing keys in ${filename}: ${keyList}`;
+	return vscode.l10n.t('Missing keys in {0}: {1}', filename, keyList);
 }
 
 function formatExtraKeysMessage(
@@ -110,13 +110,13 @@ function formatExtraKeysMessage(
 	const filename = extractFilename(filepath);
 	const keyList = formatKeyList(keys);
 
-	return `Extra keys in ${filename}: ${keyList}`;
+	return vscode.l10n.t('Extra keys in {0}: {1}', filename, keyList);
 }
 
 function formatParseErrorMessage(filepath: string, error: string): string {
 	const filename = extractFilename(filepath);
 
-	return `Failed to parse ${filename}: ${error}`;
+	return vscode.l10n.t('Failed to parse {0}: {1}', filename, error);
 }
 
 function extractFilename(filepath: string): string {

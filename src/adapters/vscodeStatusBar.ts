@@ -1,4 +1,4 @@
-import type * as vscode from 'vscode';
+import * as vscode from 'vscode';
 import type { readConfig } from '../config/config';
 import type { Configuration } from '../interfaces';
 import type { StatusBar } from '../interfaces/statusBar';
@@ -92,7 +92,7 @@ function applyStatusConfiguration(
 
 function configureInSyncStatus(statusBarItem: vscode.StatusBarItem): void {
 	statusBarItem.text = '$(file) 0';
-	statusBarItem.tooltip = 'All dotenv files are in sync';
+	statusBarItem.tooltip = vscode.l10n.t('All dotenv files are in sync');
 	statusBarItem.backgroundColor = undefined;
 	statusBarItem.command = undefined;
 }
@@ -103,7 +103,9 @@ function configureOutOfSyncStatus(
 	deps: VSCodeDependencies,
 ): void {
 	statusBarItem.text = `$(file) ${issueCount}`;
-	statusBarItem.tooltip = 'Dotenv files out of sync - click for details';
+	statusBarItem.tooltip = vscode.l10n.t(
+		'Dotenv files out of sync - click for details',
+	);
 	statusBarItem.backgroundColor = new deps.ThemeColor(
 		'statusBarItem.warningBackground',
 	);
@@ -118,7 +120,9 @@ function configureErrorStatus(
 	const displayCount = issueCount > 0 ? issueCount : '';
 
 	statusBarItem.text = `$(file) ${displayCount}`;
-	statusBarItem.tooltip = 'Error checking dotenv files - click for settings';
+	statusBarItem.tooltip = vscode.l10n.t(
+		'Error checking dotenv files - click for settings',
+	);
 	statusBarItem.backgroundColor = new deps.ThemeColor(
 		'statusBarItem.errorBackground',
 	);

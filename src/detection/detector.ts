@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import { readConfig } from '../config/config';
 import type { Configuration, FileSystem } from '../interfaces';
 import type { Notifier } from '../interfaces/notifier';
@@ -169,7 +170,9 @@ export function createDetector(
 		statusBar.updateStatus('parse-error', 0);
 
 		if (config.notificationLevel !== 'silent') {
-			notifier.showError(`Failed to check dotenv sync: ${errorMessage(error)}`);
+			notifier.showError(
+				vscode.l10n.t('Failed to check dotenv sync: {0}', errorMessage(error)),
+			);
 		}
 
 		return errorReport;

@@ -8,6 +8,7 @@ import {
 	_respondToWarning,
 	_setConfig,
 	_setFile,
+	_setFindFilesError,
 	_shownMessages,
 	_statusBarItems,
 	commands,
@@ -240,5 +241,35 @@ describe('commands (through the real wiring)', () => {
 		await commands.executeCommand('envsync-le.clearAllIgnored');
 
 		expect(_getConfigUpdates()).toHaveLength(0);
+	});
+});
+
+describe('activation: initial sync failure', () => {
+	// checkSync resolves with an error report rather than rejecting, so the
+	// reporting happens inside the detector. These drive a real failure through
+	// activate and assert the user is told exactly once, and not at all when the
+	// level is silent.
+
+	it('reports the failure at a non-silent notification level', async () => {
+		_resetMockState();
+		_setConfig('envsync-le.notificationLevel', 'all');
+		_setFindFilesError(new Error('workspace unavailable'));
+
+		activate(_createExtensionContext() as never);
+		// The check runs detached; let its rejection settle.
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		expect(_shownMessages().some((m) => m.kind === 'error')).toBe(true);
+	});
+
+	it('stays quiet at the silent notification level', async () => {
+		_resetMockState();
+		_setConfig('envsync-le.notificationLevel', 'silent');
+		_setFindFilesError(new Error('workspace unavailable'));
+
+		activate(_createExtensionContext() as never);
+		await new Promise((resolve) => setTimeout(resolve, 0));
+
+		expect(_shownMessages().some((m) => m.kind === 'error')).toBe(false);
 	});
 });

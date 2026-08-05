@@ -29,7 +29,9 @@ export function registerSetTemplateCommand(
 					// No file context - let user pick
 					const allEnvFiles = await fileSystem.findFiles('**/.env*', null, 50);
 					if (allEnvFiles.length === 0) {
-						ui.showInformationMessage('No .env files found in workspace');
+						ui.showInformationMessage(
+							vscode.l10n.t('No .env files found in workspace'),
+						);
 						return;
 					}
 
@@ -40,7 +42,7 @@ export function registerSetTemplateCommand(
 					}));
 
 					const selected = await ui.showQuickPick(picks, {
-						placeHolder: 'Select .env file to use as template',
+						placeHolder: vscode.l10n.t('Select .env file to use as template'),
 					});
 
 					if (!selected || Array.isArray(selected)) return;
@@ -49,7 +51,7 @@ export function registerSetTemplateCommand(
 
 				// Validate it's an .env file
 				if (!isEnvFileName(templateFile.fsPath)) {
-					ui.showWarningMessage('Please select a .env file');
+					ui.showWarningMessage(vscode.l10n.t('Please select a .env file'));
 					return;
 				}
 
@@ -73,10 +75,15 @@ export function registerSetTemplateCommand(
 					await detector.checkSync();
 
 					ui.showInformationMessage(
-						`Set ${relativePath} as template. All .env files will be compared against it.`,
+						vscode.l10n.t(
+							'Set {0} as template. All .env files will be compared against it.',
+							relativePath,
+						),
 					);
 				} catch (error) {
-					ui.showErrorMessage(`Failed to set template: ${errorMessage(error)}`);
+					ui.showErrorMessage(
+						vscode.l10n.t('Failed to set template: {0}', errorMessage(error)),
+					);
 				}
 			},
 		),
@@ -103,10 +110,12 @@ export function registerSetTemplateCommand(
 				await detector.checkSync();
 
 				ui.showInformationMessage(
-					'Cleared template. Returned to automatic comparison.',
+					vscode.l10n.t('Cleared template. Returned to automatic comparison.'),
 				);
 			} catch (error) {
-				ui.showErrorMessage(`Failed to clear template: ${errorMessage(error)}`);
+				ui.showErrorMessage(
+					vscode.l10n.t('Failed to clear template: {0}', errorMessage(error)),
+				);
 			}
 		}),
 	);

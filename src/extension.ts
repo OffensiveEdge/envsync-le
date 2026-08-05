@@ -13,7 +13,6 @@ import { registerAllCommands } from './commands';
 import { readConfig } from './config/config';
 import { registerOpenSettingsCommand } from './config/settings';
 import { createDetector } from './detection/detector';
-import { errorMessage } from './utils/errors';
 
 export function activate(context: vscode.ExtensionContext): void {
 	// Create core services using factory pattern
@@ -64,17 +63,16 @@ export function activate(context: vscode.ExtensionContext): void {
 	// Setup file watching (honors patterns/excludes)
 	registerVSCodeWatchers(context, detector, configuration, fileSystem);
 
-	// Perform initial sync check
-	detector.checkSync().catch((error) => {
-		// Always log errors for debugging, regardless of notification preference
-		console.error('EnvSync-LE: Initial sync check failed:', error);
-
-		// Only show notifications based on user preference
-		const config = readConfig(configuration);
-		if (config.notificationLevel !== 'silent') {
-			notifier.showError(`Initial sync check failed: ${errorMessage(error)}`);
-		}
-	});
+	// Perform the initial sync check.
+	//
+	// Deliberately not wrapped in .catch(): checkSync resolves with an error
+	// report rather than rejecting — it catches internally and routes failures
+	// through handleSyncCheckError, which notifies the user and honours
+	// notificationLevel. The only read outside its try is the configuration
+	// read, and a configuration that cannot be read has already thrown earlier
+	// in this function. A catch here was unreachable, and when it did anything
+	// at all it re-reported a failure the detector had already reported.
+	void detector.checkSync();
 
 	// Cleanup on deactivation
 	context.subscriptions.push(telemetry);

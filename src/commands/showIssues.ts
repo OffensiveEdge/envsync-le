@@ -178,5 +178,7 @@ async function showMarkdownDocument(content: string): Promise<void> {
 }
 
 function showDisplayError(error: unknown, ui: UserInterface): void {
-	ui.showErrorMessage(`Failed to show issues: ${errorMessage(error)}`);
+	ui.showErrorMessage(
+		vscode.l10n.t('Failed to show issues: {0}', errorMessage(error)),
+	);
 }
