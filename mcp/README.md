@@ -1,5 +1,20 @@
 # envsync-le-mcp
 
+<p align="center">
+  <a href="https://marketplace.visualstudio.com/items?itemName=nolindnaidoo.envsync-le">
+    <img src="https://img.shields.io/badge/Install%20from-VS%20Code-blue?style=for-the-badge&logo=visualstudiocode" alt="Install from VS Code Marketplace" />
+  </a>
+  <a href="https://open-vsx.org/extension/OffensiveEdge/envsync-le">
+    <img src="https://img.shields.io/open-vsx/dt/OffensiveEdge/envsync-le?style=for-the-badge&label=Open%20VSX&color=blue" alt="Open VSX downloads" />
+  </a>
+  <a href="https://www.npmjs.com/package/envsync-le-mcp">
+    <img src="https://img.shields.io/npm/v/envsync-le-mcp?style=for-the-badge&label=MCP%20server&color=blue&logo=npm" alt="envsync-le-mcp on npm" />
+  </a>
+  <a href="https://letools.dev">
+    <img src="https://img.shields.io/badge/LE%20Tools-letools.dev-blue?style=for-the-badge" alt="LE Tools" />
+  </a>
+</p>
+
 An [MCP](https://modelcontextprotocol.io) server that extracts URLs from
 documentation, configuration and code — the extraction engine behind the
 [EnvSync-LE](https://marketplace.visualstudio.com/items?itemName=nolindnaidoo.envsync-le)
