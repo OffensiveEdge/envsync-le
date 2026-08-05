@@ -84,7 +84,8 @@ export function parseDotenvFile(
 						filepath,
 					),
 				);
-			} else {
+			}
+			if (i < lines.length) {
 				i++; // consume the closing line
 			}
 		}

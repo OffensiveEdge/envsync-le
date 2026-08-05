@@ -61,33 +61,41 @@ export function shouldExcludeFile(
 	});
 }
 
+/**
+ * Translate the token at `index`, returning its regex and how much it consumed.
+ *
+ * The longest form is matched first, which is what the nested branches this
+ * replaced were expressing: `**\/` before `**`, `**` before `*`.
+ */
+function translateGlobToken(
+	pattern: string,
+	index: number,
+): readonly [string, number] {
+	const c = pattern[index] as string;
+
+	if (c === '*' && pattern[index + 1] === '*' && pattern[index + 2] === '/') {
+		return ['(?:.*/)?', 3]; // '**/' spans zero or more directories
+	}
+	if (c === '*' && pattern[index + 1] === '*') {
+		return ['.*', 2];
+	}
+	if (c === '*') {
+		return ['[^/]*', 1];
+	}
+	if (c === '?') {
+		return ['[^/]', 1];
+	}
+	return [escapeRegexChar(c), 1];
+}
+
 function globToRegex(pattern: string): RegExp {
 	let out = '';
 	let i = 0;
 
 	while (i < pattern.length) {
-		const c = pattern[i] as string;
-
-		if (c === '*') {
-			if (pattern[i + 1] === '*') {
-				if (pattern[i + 2] === '/') {
-					out += '(?:.*/)?'; // '**/' spans zero or more directories
-					i += 3;
-				} else {
-					out += '.*';
-					i += 2;
-				}
-			} else {
-				out += '[^/]*';
-				i += 1;
-			}
-		} else if (c === '?') {
-			out += '[^/]';
-			i += 1;
-		} else {
-			out += escapeRegexChar(c);
-			i += 1;
-		}
+		const [translated, consumed] = translateGlobToken(pattern, i);
+		out += translated;
+		i += consumed;
 	}
 
 	return new RegExp(`^${out}$`);

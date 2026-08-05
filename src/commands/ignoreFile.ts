@@ -6,6 +6,25 @@ import type { Configuration, FileSystem, UserInterface } from '../interfaces';
 import type { Telemetry } from '../interfaces/telemetry';
 import { errorMessage } from '../utils/errors';
 
+/** Ask which ignored file to act on; null when the picker is dismissed. */
+async function pickIgnoredFile(
+	ui: UserInterface,
+	currentIgnored: readonly string[],
+): Promise<string | null> {
+	const picks = currentIgnored.map((path) => ({
+		label: path,
+		description: vscode.l10n.t('Currently ignored'),
+		value: path,
+	}));
+
+	const selected = await ui.showQuickPick(picks, {
+		placeHolder: vscode.l10n.t('Select file to stop ignoring'),
+	});
+
+	if (!selected || Array.isArray(selected)) return null;
+	return selected;
+}
+
 export function registerIgnoreFileCommand(
 	context: vscode.ExtensionContext,
 	deps: Readonly<{
@@ -108,25 +127,11 @@ export function registerIgnoreFileCommand(
 					return;
 				}
 
-				let targetPath: string;
-
-				if (uri) {
-					targetPath = vscode.workspace.asRelativePath(uri);
-				} else {
-					// Show picker of currently ignored files
-					const picks = currentIgnored.map((path) => ({
-						label: path,
-						description: vscode.l10n.t('Currently ignored'),
-						value: path,
-					}));
-
-					const selected = await ui.showQuickPick(picks, {
-						placeHolder: vscode.l10n.t('Select file to stop ignoring'),
-					});
-
-					if (!selected || Array.isArray(selected)) return;
-					targetPath = selected;
-				}
+				// Either the file was passed in (context menu) or the user picks one.
+				const targetPath = uri
+					? vscode.workspace.asRelativePath(uri)
+					: await pickIgnoredFile(ui, currentIgnored);
+				if (!targetPath) return;
 
 				if (!currentIgnored.includes(targetPath)) {
 					ui.showInformationMessage(

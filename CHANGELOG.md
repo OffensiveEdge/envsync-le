@@ -50,6 +50,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Every `else` block is gone (7 of them; an eighth match was prose in a
+  comment). The glob translator's four nested branches are now one
+  `translateGlobToken` function with ordered guards, longest form first.
+- `VSCodeCommandAdapter` is a factory function returning a frozen object. It
+  was the only class in the fleet; nothing inherited from it and nothing needed
+  an instance identity.
+- `detection/detector.ts` held the detector factory plus all of file discovery,
+  parsing and filtering in 526 lines. Discovery moved to
+  `detection/discovery.ts`, leaving 290 and 247.
+
 - Test coverage raised from 73.27% to 84.59% of branches (82.27% to 90.25% of
   statements). Five files sat below one of the repo's own floors; none do now.
   The gap was the three workspace commands — each a chain of file discovery, a

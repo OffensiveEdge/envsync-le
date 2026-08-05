@@ -97,9 +97,9 @@ export function createVSCodeUserInterface(): UserInterface {
 		showStatusBarMessage(message: string, timeout?: number): void {
 			if (timeout !== undefined) {
 				vscode.window.setStatusBarMessage(message, timeout);
-			} else {
-				vscode.window.setStatusBarMessage(message);
+				return;
 			}
+			vscode.window.setStatusBarMessage(message);
 		},
 	};
 }

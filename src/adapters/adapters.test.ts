@@ -19,7 +19,7 @@ import {
 } from '../__mocks__/vscode';
 import { readConfig } from '../config/config';
 import type { Detector } from '../detection/detector';
-import { VSCodeCommandAdapter } from './vscodeCommand';
+import { createVSCodeCommandAdapter } from './vscodeCommand';
 import { createVSCodeConfiguration } from './vscodeConfiguration';
 import { createVSCodeFileSystem } from './vscodeFileSystem';
 import { createVSCodeNotifier } from './vscodeNotifier';
@@ -62,7 +62,7 @@ describe('vscodeConfiguration', () => {
 describe('vscodeCommand', () => {
 	it('registers commands into subscriptions and executes them', async () => {
 		const context = _createExtensionContext();
-		const adapter = new VSCodeCommandAdapter(context as never);
+		const adapter = createVSCodeCommandAdapter(context as never);
 
 		const seen: unknown[] = [];
 		adapter.registerCommand('envsync-le.testCmd', async (...args) => {

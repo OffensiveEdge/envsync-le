@@ -4,7 +4,7 @@ import {
 	createVSCodeFileSystem,
 	createVSCodeUserInterface,
 } from './adapters';
-import { VSCodeCommandAdapter } from './adapters/vscodeCommand';
+import { createVSCodeCommandAdapter } from './adapters/vscodeCommand';
 import { createVSCodeNotifier } from './adapters/vscodeNotifier';
 import { createVSCodeStatusBar } from './adapters/vscodeStatusBar';
 import { createVSCodeTelemetry } from './adapters/vscodeTelemetry';
@@ -48,7 +48,7 @@ export function activate(context: vscode.ExtensionContext): void {
 		configuration,
 		fileSystem,
 	});
-	const commandAdapter = new VSCodeCommandAdapter(context);
+	const commandAdapter = createVSCodeCommandAdapter(context);
 
 	// Register commands
 	registerOpenSettingsCommand(commandAdapter, telemetry);
