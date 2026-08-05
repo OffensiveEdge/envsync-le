@@ -281,8 +281,8 @@
 		"package": "node -e \"require('fs').mkdirSync('release',{recursive:true})\" && vsce package --no-dependencies --out release/ && npm run clean:i18n",
 		"test:integration": "npm run build && tsc -p tsconfig.it.json && vscode-test",
 		"test:e2e-vsix": "node scripts/e2e-vsix.js",
-		"hooks:install": "git rev-parse --git-dir >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
+		"hooks:install": "node scripts/install-hooks.js",
 		"lint:commits": "node scripts/commit-lint.js --range origin/main..HEAD",
-		"prepare": "bun run hooks:install"
+		"prepare": "node scripts/install-hooks.js"
 	}
 }
