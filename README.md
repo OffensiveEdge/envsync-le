@@ -11,6 +11,12 @@
   <a href="https://marketplace.visualstudio.com/items?itemName=nolindnaidoo.envsync-le">
     <img src="https://img.shields.io/badge/Install%20from-VS%20Code-blue?style=for-the-badge&logo=visualstudiocode" alt="Install from VS Code Marketplace" />
   </a>
+  <a href="https://open-vsx.org/extension/OffensiveEdge/envsync-le">
+    <img src="https://img.shields.io/open-vsx/dt/OffensiveEdge/envsync-le?style=for-the-badge&label=Open%20VSX&color=blue" alt="Open VSX downloads" />
+  </a>
+  <a href="https://www.npmjs.com/package/envsync-le-mcp">
+    <img src="https://img.shields.io/npm/v/envsync-le-mcp?style=for-the-badge&label=MCP%20server&color=blue&logo=npm" alt="envsync-le-mcp on npm" />
+  </a>
   <a href="https://letools.dev">
     <img src="https://img.shields.io/badge/LE%20Tools-letools.dev-blue?style=for-the-badge" alt="LE Tools" />
   </a>
@@ -39,6 +45,67 @@ in VS Code–based editors like Cursor and VSCodium (installable from Open VSX).
 - **Markdown report** — `Show Details` (`Ctrl+Alt+S` / `Cmd+Alt+S`) lists every missing key per file
 - **Three comparison modes** — `auto` (union of all keys), `manual` (only the files you list), `template` (validate everything against one reference file; also reports keys a file has that the template lacks)
 - **Ignore list** — temporarily exclude files (e.g. `.env.example`) from checking
+
+## Use it from an AI agent
+
+The same engine runs as an [MCP](https://modelcontextprotocol.io) server, so an agent can call it directly instead of you running a command.
+
+| Editor | How |
+|---|---|
+| **VS Code** 1.101+ | Nothing to install — the extension registers `compare_env_files` with agent mode |
+| **Zed** | [EnvSync-LE](https://github.com/zed-industries/extensions/pull/7084) — *pending review* |
+| **Claude Code** | `claude mcp add envsync-le -- npx -y envsync-le-mcp` |
+| **Cursor, Windsurf, anything else** | point it at `npx envsync-le-mcp` |
+
+```
+compare_env_files(files[], mode?, templatePath?, caseSensitive?, maxResults?)
+```
+
+Takes file contents directly and reports which keys are missing from which file. **Only key names are returned, never values** — a dotenv file is where credentials live and the answer does not need them.
+
+The server takes content and returns data — it reads no files and makes no network requests of its own. Published as [`envsync-le-mcp`](https://www.npmjs.com/package/envsync-le-mcp) on npm and as `io.github.nolindnaidoo/envsync-le` in the [MCP registry](https://registry.modelcontextprotocol.io).
+
+<details>
+<summary><b>Configuring it by hand</b> — any host with an MCP config file</summary>
+
+Most hosts read a JSON config. Add one entry:
+
+```json
+{
+  "mcpServers": {
+    "envsync-le": {
+      "command": "npx",
+      "args": ["-y", "envsync-le-mcp"]
+    }
+  }
+}
+```
+
+`-y` skips the install prompt on first run. Pin a version if you would rather not track releases — `envsync-le-mcp@2.2.1`.
+
+Prefer not to go through `npx` on every launch? Install it once and point at the binary instead:
+
+```bash
+npm install -g envsync-le-mcp
+```
+
+```json
+{
+  "mcpServers": {
+    "envsync-le": { "command": "envsync-le-mcp" }
+  }
+}
+```
+
+It speaks MCP over stdio and needs no environment variables, no API key and no configuration of its own. To check it before wiring it into anything:
+
+```bash
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | npx -y envsync-le-mcp
+```
+
+That prints the tool list and exits — if you see `compare_env_files`, the server works.
+
+</details>
 
 ## File classification
 
@@ -115,6 +182,7 @@ setting of its own.
   `telemetryEnabled` setting only writes events to a local Output Channel
   you can inspect (`envsync-le`).
 - **Values are never read, displayed, or logged** — only key names are compared.
+- **The MCP server returns key names, never values.** A dotenv file is where credentials live, so the server reports which keys are missing or extra and nothing about what they contain. It takes file contents as an argument rather than paths, so it reads no files and makes no network calls; the bundle gate asserts a known value is absent from its response.
 - Error notifications redact home directories and credential-shaped fragments.
 
 ## Development
@@ -171,6 +239,8 @@ run. Reproduce with `bun run test:coverage`.
 
 Every tool in the family, one page: **[letools.dev](https://letools.dev)**
 
+All ten also ship as MCP servers — `npx <name>-mcp` gives any agent the same engine.
+
 - **[String-LE](https://marketplace.visualstudio.com/items?itemName=nolindnaidoo.string-le)** - Extract string values for i18n from JSON, YAML, CSV, TOML, INI, and .env
 - **[Numbers-LE](https://marketplace.visualstudio.com/items?itemName=nolindnaidoo.numbers-le)** - Extract numeric values from JSON, YAML, CSV, TOML, INI, and .env
 - **[Paths-LE](https://marketplace.visualstudio.com/items?itemName=nolindnaidoo.paths-le)** - Extract file paths from JS/TS imports, JSON, HTML, CSS, TOML, CSV, and .env
@@ -185,8 +255,10 @@ Every tool in the family, one page: **[letools.dev](https://letools.dev)**
 
 **Rust**
 
-- **[pixelcoords](https://github.com/nolindnaidoo/pixelcoords)** - Mark pixel-exact coordinates machines can use · [pixelcoords.dev](https://pixelcoords.dev)
-- **[pixelactions](https://github.com/nolindnaidoo/pixelactions)** - Perform the interaction and confirm it landed · [pixelactions.dev](https://pixelactions.dev)
+- **[pixelcoords](https://github.com/nolindnaidoo/pixelcoords)** — Freeze your screen, mark regions, get pixel-exact coordinates and crops
+  [pixelcoords.dev](https://pixelcoords.dev) · [crates.io](https://crates.io/crates/pixelcoords) · [docs.rs](https://docs.rs/pixelcoords)
+- **[pixelactions](https://github.com/nolindnaidoo/pixelactions)** — Consume human-verified coordinates, perform the interaction, confirm it landed
+  [pixelactions.dev](https://pixelactions.dev) · [crates.io](https://crates.io/crates/pixelactions) · [docs.rs](https://docs.rs/pixelactions)
 
 **Contact Developer** — [GitHub](https://github.com/nolindnaidoo) · [LinkedIn](https://www.linkedin.com/in/nolindnaidoo/)
 
