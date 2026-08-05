@@ -29,5 +29,6 @@
 	"manifest.settings.comparison-mode.option.template": "So sánh với mẫu",
 	"manifest.settings.compare-only-files.desc": "Tệp để so sánh thủ công",
 	"manifest.settings.template-file.desc": "Tệp mẫu",
-	"manifest.settings.temporary-ignore.desc": "Tệp bị bỏ qua tạm thời"
+	"manifest.settings.temporary-ignore.desc": "Tệp bị bỏ qua tạm thời",
+	"manifest.mcp.label": "Các công cụ so sánh EnvSync-LE và dotenv cho chế độ đại lý"
 }

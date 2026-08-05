@@ -1,0 +1,38 @@
+{
+	"name": "envsync-le-mcp",
+	"version": "2.2.1",
+	"mcpName": "io.github.nolindnaidoo/envsync-le",
+	"description": "Compare dotenv files and report which keys are missing or extra, by name only.",
+	"keywords": [
+		"mcp",
+		"modelcontextprotocol",
+		"model-context-protocol",
+		"envsync-le"
+	],
+	"license": "MIT",
+	"author": {
+		"name": "nolindnaidoo",
+		"url": "https://github.com/nolindnaidoo"
+	},
+	"homepage": "https://letools.dev",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/nolindnaidoo/envsync-le.git",
+		"directory": "mcp"
+	},
+	"bugs": {
+		"url": "https://github.com/nolindnaidoo/envsync-le/issues"
+	},
+	"type": "commonjs",
+	"bin": {
+		"envsync-le-mcp": "server.js"
+	},
+	"files": [
+		"server.js",
+		"README.md",
+		"LICENSE"
+	],
+	"engines": {
+		"node": ">=20"
+	}
+}

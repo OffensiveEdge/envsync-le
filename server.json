@@ -1,0 +1,20 @@
+{
+	"$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+	"name": "io.github.nolindnaidoo/envsync-le",
+	"description": "Compare dotenv files and report which keys are missing or extra, by name only.",
+	"repository": {
+		"url": "https://github.com/nolindnaidoo/envsync-le",
+		"source": "github"
+	},
+	"version": "2.2.1",
+	"packages": [
+		{
+			"registryType": "npm",
+			"identifier": "envsync-le-mcp",
+			"version": "2.2.1",
+			"transport": {
+				"type": "stdio"
+			}
+		}
+	]
+}

@@ -29,5 +29,6 @@
 	"manifest.settings.comparison-mode.option.template": "Comparar com modelo",
 	"manifest.settings.compare-only-files.desc": "Ficheiros para comparação manual",
 	"manifest.settings.template-file.desc": "Ficheiro modelo",
-	"manifest.settings.temporary-ignore.desc": "Ficheiros temporariamente ignorados"
+	"manifest.settings.temporary-ignore.desc": "Ficheiros temporariamente ignorados",
+	"manifest.mcp.label": "Ferramentas de comparação entre o EnvSync-LE e o dotenv para o modo agente"
 }

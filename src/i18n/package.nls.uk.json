@@ -29,5 +29,6 @@
 	"manifest.settings.comparison-mode.option.template": "Порівняти з шаблоном",
 	"manifest.settings.compare-only-files.desc": "Файли для ручного порівняння",
 	"manifest.settings.template-file.desc": "Файл шаблону",
-	"manifest.settings.temporary-ignore.desc": "Тимчасово проігноровані файли"
+	"manifest.settings.temporary-ignore.desc": "Тимчасово проігноровані файли",
+	"manifest.mcp.label": "Інструменти порівняння EnvSync-LE та dotenv для режиму агента"
 }

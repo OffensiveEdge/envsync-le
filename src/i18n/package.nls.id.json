@@ -29,5 +29,6 @@
 	"manifest.settings.comparison-mode.option.template": "Bandingkan dengan templat",
 	"manifest.settings.compare-only-files.desc": "Berkas untuk perbandingan manual",
 	"manifest.settings.template-file.desc": "Berkas templat",
-	"manifest.settings.temporary-ignore.desc": "Berkas yang diabaikan sementara"
+	"manifest.settings.temporary-ignore.desc": "Berkas yang diabaikan sementara",
+	"manifest.mcp.label": "Perbandingan alat EnvSync-LE dan dotenv untuk mode agen"
 }

@@ -1,6 +1,6 @@
 {
 	"name": "envsync-le",
-	"version": "2.1.0",
+	"version": "2.2.1",
 	"author": {
 		"name": "nolindnaidoo",
 		"url": "https://github.com/nolindnaidoo"
@@ -15,7 +15,7 @@
 		"@biomejs/biome": "^2.5.7",
 		"@types/mocha": "^10.0.10",
 		"@types/node": "^26.1.2",
-		"@types/vscode": "1.90.0",
+		"@types/vscode": "1.101.0",
 		"@vitest/coverage-v8": "^4.1.10",
 		"@vscode/test-cli": "^0.0.15",
 		"@vscode/test-electron": "^3.1.0",
@@ -215,12 +215,18 @@
 					"description": "%manifest.settings.temporary-ignore.desc%"
 				}
 			}
-		}
+		},
+		"mcpServerDefinitionProviders": [
+			{
+				"id": "envsync-le",
+				"label": "%manifest.mcp.label%"
+			}
+		]
 	},
 	"description": "Spot missing keys across your .env files - automatic checks, a status bar counter, and a markdown report. Auto, manual, and template comparison modes.",
 	"displayName": "EnvSync-LE",
 	"engines": {
-		"vscode": "^1.90.0",
+		"vscode": "^1.101.0",
 		"node": ">=20.0.0"
 	},
 	"homepage": "https://letools.dev",
@@ -268,6 +274,11 @@
 		"watch": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --target=node20 --main-fields=module,main --sourcemap --watch",
 		"typecheck": "tsc --noEmit",
 		"check:bundle": "node scripts/check-bundle.js",
+		"build:mcp": "node scripts/build-mcp.js",
+		"build:mcp:prod": "node scripts/build-mcp.js --prod",
+		"check:mcp-bundle": "node scripts/check-mcp-bundle.js",
+		"build:npm": "node scripts/build-npm.js",
+		"check:npm-package": "node scripts/check-npm-package.js",
 		"test": "vitest run --pool=threads",
 		"test:watch": "vitest --pool=threads",
 		"test:coverage": "vitest run --coverage --pool=threads",
@@ -277,7 +288,7 @@
 		"coverage:readme:check": "node scripts/coverage-readme.js --check",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
-		"vscode:prepublish": "npm run typecheck && npm run build:prod && npm run check:bundle && npm run copy:i18n",
+		"vscode:prepublish": "npm run typecheck && npm run build:prod && npm run build:mcp:prod && npm run check:bundle && npm run check:mcp-bundle && npm run copy:i18n",
 		"package": "node -e \"require('fs').mkdirSync('release',{recursive:true})\" && vsce package --no-dependencies --out release/ && npm run clean:i18n",
 		"test:integration": "npm run build && tsc -p tsconfig.it.json && vscode-test",
 		"test:e2e-vsix": "node scripts/e2e-vsix.js",

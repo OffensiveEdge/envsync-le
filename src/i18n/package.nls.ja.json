@@ -29,5 +29,6 @@
 	"manifest.settings.comparison-mode.option.template": "テンプレートと比較",
 	"manifest.settings.compare-only-files.desc": "手動比較対象ファイル",
 	"manifest.settings.template-file.desc": "テンプレートファイル",
-	"manifest.settings.temporary-ignore.desc": "一時的に無視されたファイル"
+	"manifest.settings.temporary-ignore.desc": "一時的に無視されたファイル",
+	"manifest.mcp.label": "エージェントモード向けの EnvSync-LE と dotenv の比較ツール"
 }

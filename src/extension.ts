@@ -13,6 +13,7 @@ import { registerAllCommands } from './commands';
 import { readConfig } from './config/config';
 import { registerOpenSettingsCommand } from './config/settings';
 import { createDetector } from './detection/detector';
+import { registerMcpProvider } from './mcp/provider';
 
 export function activate(context: vscode.ExtensionContext): void {
 	// Create core services using factory pattern
@@ -80,6 +81,9 @@ export function activate(context: vscode.ExtensionContext): void {
 	context.subscriptions.push(detector);
 
 	telemetry.event('extension-activated');
+
+	// Offer the bundled MCP server to agent mode, where the host supports it
+	registerMcpProvider(context);
 }
 
 export function deactivate(): void {

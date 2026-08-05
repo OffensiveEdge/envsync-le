@@ -29,5 +29,6 @@
 	"manifest.settings.comparison-mode.option.template": "与模板比较",
 	"manifest.settings.compare-only-files.desc": "手动比较文件",
 	"manifest.settings.template-file.desc": "模板文件",
-	"manifest.settings.temporary-ignore.desc": "临时忽略文件"
+	"manifest.settings.temporary-ignore.desc": "临时忽略文件",
+	"manifest.mcp.label": "适用于代理模式的 EnvSync-LE 与 dotenv 对比工具"
 }
