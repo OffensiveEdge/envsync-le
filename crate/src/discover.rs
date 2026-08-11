@@ -82,7 +82,7 @@ pub(crate) fn discover(root: &StdPath, options: &DiscoverOptions) -> Result<Vec<
             continue;
         }
         let path = entry.into_path();
-        let relative = path.strip_prefix(root).unwrap_or(&path).to_string_lossy();
+        let relative = relative_path(&path, root);
         if !is_env_file(&relative) || should_exclude(&relative, &options.exclude) {
             continue;
         }
@@ -106,11 +106,7 @@ pub(crate) fn read(path: &PathBuf, root: &StdPath) -> Result<EnvFile, String> {
     let content =
         String::from_utf8(bytes).map_err(|_| format!("{}: not UTF-8 text", path.display()))?;
     let content = without_bom(&content);
-    let relative = path
-        .strip_prefix(root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .into_owned();
+    let relative = relative_path(path, root);
     let parsed = parse(content);
     Ok(EnvFile {
         kind: detect_file_type(&relative),
@@ -128,6 +124,23 @@ pub(crate) fn read(path: &PathBuf, root: &StdPath) -> Result<EnvFile, String> {
 /// a PowerShell redirect. Here it would attach itself to the first key
 /// name, so `\u{feff}API_URL` and `API_URL` would read as two different
 /// keys and every file would look out of sync with every other.
+/// A path below `root`, always written with forward slashes.
+///
+/// The separator reaches the report, so leaving it to the platform means
+/// the same repository describes itself as `packages/api/.env` on one
+/// machine and `packages\api\.env` on another. Anything comparing two
+/// runs — a diff, a baseline, a reviewer — sees a change that is not
+/// one. The extension runs inside an editor that already normalises
+/// this, so forward slashes are also what the other frontend reports.
+pub(crate) fn relative_path(path: &StdPath, root: &StdPath) -> String {
+    path.strip_prefix(root)
+        .unwrap_or(path)
+        .components()
+        .map(|component| component.as_os_str().to_string_lossy())
+        .collect::<Vec<_>>()
+        .join("/")
+}
+
 pub(crate) fn without_bom(content: &str) -> &str {
     content.strip_prefix('\u{feff}').unwrap_or(content)
 }
@@ -257,11 +270,16 @@ mod tests {
         assert!(read.errors.is_empty());
     }
 
+    /// Forward slashes on every platform. The separator reaches the
+    /// report, so leaving it to the platform means two machines
+    /// describe the same repository differently and anything comparing
+    /// two runs sees a change that is not one.
     #[test]
-    fn a_path_is_reported_relative_to_the_root() {
+    fn a_path_is_reported_relative_to_the_root_with_forward_slashes() {
         let tree = TempTree::new("discover-relative");
         let file = tree.write("packages/api/.env", "A=1");
         let read = read(&file, tree.path()).expect("reads");
         assert_eq!(read.path, "packages/api/.env");
+        assert!(!read.path.contains('\\'), "{}", read.path);
     }
 }
