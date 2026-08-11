@@ -122,6 +122,45 @@ That prints the tool list and exits — if you see `compare_env_files`, the serv
 Classification is segment-based on the basename — `app.device.env` is not
 "development", and Windows paths classify correctly.
 
+## The CLI
+
+The same comparison runs from a terminal or a CI step: a Rust CLI in
+[`crate/`](crate/README.md), sharing one corpus with the extension —
+[`crate/fixtures/`](crate/fixtures/) — so the two can never read a
+dotenv file differently.
+
+```bash
+envsync-le .                            # have these environments drifted?
+envsync-le --template .env.example .    # will this deploy break?
+envsync-le mcp                          # the same comparison over MCP on stdio
+```
+
+```
+.env: missing STRIPE_KEY, SENTRY_DSN (in .env.example)
+.env.production: missing SENTRY_DSN (in .env.example)
+out of sync — 2 files with mismatches across 3 files
+```
+
+**The exit code is the product** — 0 in sync, 1 out of sync, 2 malformed
+question. Finding no dotenv files at all is 0: there is nothing to be out
+of sync with. Unlike the extractors in this family there is no list to
+pipe onward; the number is the answer.
+
+**It never reads a value.** Only key names are parsed, compared or
+reported, and three separate checks enforce that rather than a promise.
+
+Install it with `cargo install envsync-le` once it is published; until
+then it builds from `crate/`. The spec
+([`crate/SPEC.md`](crate/SPEC.md)) and the engineering standard
+([`crate/AGENTS.md`](crate/AGENTS.md)) live alongside it, and it keeps
+its own [CHANGELOG](crate/CHANGELOG.md).
+
+**Two MCP servers, one tool.** `envsync-le mcp` offers
+`compare_env_files` exactly as
+[`envsync-le-mcp`](https://www.npmjs.com/package/envsync-le-mcp) does —
+[`crate/fixtures/mcp-compare-env-files.json`](crate/fixtures/mcp-compare-env-files.json)
+runs against both and CI fails if they diverge.
+
 ## Commands
 
 | Command | Description |
@@ -239,7 +278,7 @@ run. Reproduce with `bun run test:coverage`.
 
 Every tool in the family, one page: **[letools.dev](https://letools.dev)**
 
-All ten also ship as MCP servers — `npx <name>-mcp` gives any agent the same engine. Seven go further and ship a Rust CLI: **Paths-LE**, **Secrets-LE**, **URLs-LE**, **Regex-LE**, **String-LE**, **Numbers-LE** and **Scrape-LE**, each installed with `cargo install <that-name>`.
+All ten also ship as MCP servers — `npx <name>-mcp` gives any agent the same engine. Eight go further and ship a Rust CLI: **Paths-LE**, **Secrets-LE**, **URLs-LE**, **Regex-LE**, **String-LE**, **Numbers-LE**, **EnvSync-LE** and **Scrape-LE**, each installed with `cargo install <that-name>`.
 
 - **[String-LE](https://letools.dev/tools/string-le)** - Extract string values for i18n from JSON, YAML, CSV, TOML, INI, and .env
 - **[Numbers-LE](https://letools.dev/tools/numbers-le)** - Extract numeric values from JSON, YAML, CSV, TOML, INI, and .env
@@ -253,12 +292,14 @@ All ten also ship as MCP servers — `npx <name>-mcp` gives any agent the same e
 
 ## Also by nolindnaidoo
 
-**Rust** — pixelcoords and pixelactions are one loop: pixelcoords answers *where*, pixelactions *acts* there. The seven LE crates are the terminal half of the extensions they sit in — the same extraction, held to the extension's own corpus, and an exit code instead of a results editor.
+**Rust** — pixelcoords and pixelactions are one loop: pixelcoords answers *where*, pixelactions *acts* there. The eight LE crates are the terminal half of the extensions they sit in — the same detection, held to the extension's own corpus, and an exit code instead of a results editor.
 
 - **[pixelcoords](https://github.com/nolindnaidoo/pixelcoords)** — Freeze your screen, mark regions, get pixel-exact coordinates and crops
   [pixelcoords.dev](https://pixelcoords.dev) · [crates.io](https://crates.io/crates/pixelcoords) · [docs.rs](https://docs.rs/pixelcoords)
 - **[pixelactions](https://github.com/nolindnaidoo/pixelactions)** — Consume human-verified coordinates, perform the interaction, confirm it landed
   [pixelactions.dev](https://pixelactions.dev) · [crates.io](https://crates.io/crates/pixelactions) · [docs.rs](https://docs.rs/pixelactions)
+- **[envsync-le](https://github.com/nolindnaidoo/envsync-le/tree/main/crate)** — This extension's own CLI: compare the dotenv files in a tree and say which keys are missing from which
+  [crates.io](https://crates.io/crates/envsync-le)
 - **[paths-le](https://github.com/nolindnaidoo/paths-le/tree/main/crate)** — Find every path in a codebase and report whether it still points at anything
   [crates.io](https://crates.io/crates/paths-le)
 - **[secrets-le](https://github.com/nolindnaidoo/secrets-le/tree/main/crate)** — Find hardcoded credentials, and never print one

@@ -6,6 +6,9 @@ immutability, structure — plus this repo's architecture, invariants, toolchain
 and release. Read it before writing code. README.md is user-facing and partly
 generated.
 
+The repo also hosts the Rust CLI in `crate/` — read `crate/CLAUDE.md` and
+`crate/AGENTS.md` for that side; the shared corpus is `crate/fixtures/`.
+
 ## Where to look
 
 | Question | File |
@@ -37,7 +40,16 @@ artifact users actually install.
   README, the manifest, or help text unless the code backs it.
 - **This repo is one of ten identical ones.** Config files and workflows are
   byte-identical across the family; a change here needs copying to the other
-  nine. See `../CLAUDE.md`.
+  nine. See `../CLAUDE.md`. `ci-crate.yml` and `release-crate.yml` are the
+  exception — they exist only in the repos that ship a crate.
+- **Detection is shared with the Rust CLI.** `src/detection/**` is the
+  reference implementation for `crate/`, and `crate/fixtures/` is the contract
+  between them. Changing detection behaviour means running
+  `bun scripts/check-detection-parity.ts` and updating the corpus — on both
+  sides, in the same commit. CI fails when either drifts.
+- **No value ever reaches an answer.** Only key names are parsed, compared or
+  reported. The parity script greps the corpus for a value and fails if it
+  finds one; the crate does the same to its embedded copy.
 - **Localization is two mechanisms, and they fail separately.** `src/i18n/package.nls.*.json`
   covers the manifest; `l10n/bundle.l10n.*.json` covers runtime strings through
   `vscode.l10n.t()`. Twelve locales each, held in exact key parity by the
