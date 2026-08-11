@@ -35,14 +35,20 @@ Options:
   --hidden             descend hidden directories too
   --no-ignore          walk files that .gitignore excludes
 
+A file that is not text, or that cannot be opened, is named in the
+diagnostics and left out of the comparison rather than aborting it — a
+`.env.bak` that is not text says nothing about whether the real ones
+agree. --strict turns it back into a failure.
+
 Exit codes: 0 in sync · 1 out of sync · 2 malformed question. Finding no
 dotenv files at all is 0 — there is nothing to be out of sync with.";
 
 /// Every flag the parser accepts. Held equal to the flags named in USAGE
 /// by a test, and consulted at runtime so the list is what the parser
 /// actually honours.
-const FLAGS: [&str; 6] = [
+const FLAGS: [&str; 7] = [
     "--template",
+    "--strict",
     "--file",
     "--ignore-case",
     "--exclude",
@@ -55,6 +61,8 @@ struct Cli {
     root: PathBuf,
     files: Vec<PathBuf>,
     scan: ScanOptions,
+    /// Fail the run if any file could not be read.
+    strict: bool,
 }
 
 pub(crate) fn run() -> ExitCode {
@@ -89,7 +97,7 @@ fn execute(args: &[String]) -> Result<u8, String> {
     let report = if options.files.is_empty() {
         scan::scan(&options.root, &options.scan)?
     } else {
-        scan::scan_paths(&options.files, &options.root, &options.scan)?
+        scan::scan_paths(&options.files, &options.root, &options.scan)
     };
 
     let line = serde_json::to_string(&report).expect("a report serializes");
@@ -97,11 +105,12 @@ fn execute(args: &[String]) -> Result<u8, String> {
         .map_err(|error| format!("could not write the report: {error}"))?;
 
     summarise(&report);
-    Ok(scan::exit_code(&report))
+    Ok(scan::exit_code(&report, options.strict))
 }
 
 fn parse(args: &[String]) -> Result<Cli, String> {
     let mut options = Cli {
+        strict: false,
         root: PathBuf::from("."),
         files: Vec::new(),
         scan: ScanOptions::default(),
@@ -120,6 +129,7 @@ fn parse(args: &[String]) -> Result<Cli, String> {
 
         match arg.as_str() {
             "--ignore-case" => options.scan.ignore_case = true,
+            "--strict" => options.strict = true,
             "--hidden" => options.scan.discover.hidden = true,
             "--no-ignore" => options.scan.discover.respect_ignore = false,
             "--template" => {

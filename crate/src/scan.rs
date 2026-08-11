@@ -52,20 +52,33 @@ pub(crate) struct ScanOptions {
 /// Compare the dotenv files under `root`.
 pub(crate) fn scan(root: &StdPath, options: &ScanOptions) -> Result<Report, String> {
     let paths = discover::discover(root, &options.discover)?;
-    scan_paths(&paths, root, options)
+    Ok(scan_paths(&paths, root, options))
 }
 
 /// Compare exactly these files, in the order given.
-pub(crate) fn scan_paths(
-    paths: &[PathBuf],
-    root: &StdPath,
-    options: &ScanOptions,
-) -> Result<Report, String> {
-    let files: Vec<EnvFile> = paths
-        .iter()
-        .map(|path| discover::read(path, root))
-        .collect::<Result<_, _>>()?;
-    Ok(report_for(&files, options))
+pub(crate) fn scan_paths(paths: &[PathBuf], root: &StdPath, options: &ScanOptions) -> Report {
+    // One unreadable file does not abort the comparison of the rest —
+    // a `.env.bak` that is not text says nothing about whether the real
+    // ones agree. It is named in the diagnostics so the answer is not
+    // quietly narrower than it looks.
+    let mut files = Vec::new();
+    let mut skipped = Vec::new();
+    for path in paths {
+        match discover::read(path, root) {
+            Ok(file) => files.push(file),
+            Err(reason) => skipped.push((path.display().to_string(), reason)),
+        }
+    }
+    let mut report = report_for(&files, options);
+    report
+        .diagnostics
+        .extend(skipped.into_iter().map(|(file, message)| Diagnostic {
+            severity: "warning".to_string(),
+            code: "skipped".to_string(),
+            file,
+            message,
+        }));
+    report
 }
 
 pub(crate) fn report_for(files: &[EnvFile], options: &ScanOptions) -> Report {
@@ -124,7 +137,10 @@ pub(crate) fn report_for(files: &[EnvFile], options: &ScanOptions) -> Report {
 /// No files found is 0, not 1. A repository with no dotenv files is not
 /// out of sync — there is nothing to be out of sync with, and failing a
 /// build over it would be the tool inventing a problem.
-pub(crate) fn exit_code(report: &Report) -> u8 {
+pub(crate) fn exit_code(report: &Report, strict: bool) -> u8 {
+    if strict && report.diagnostics.iter().any(|d| d.code == "skipped") {
+        return 2;
+    }
     match report.status {
         Status::InSync | Status::NoFiles => 0,
         Status::MissingKeys | Status::ExtraKeys => 1,
@@ -152,7 +168,7 @@ mod tests {
         );
         let report = scan(tree.path(), &ScanOptions::default()).expect("scans");
         assert_eq!(report.status, Status::InSync);
-        assert_eq!(exit_code(&report), 0);
+        assert_eq!(exit_code(&report, false), 0);
     }
 
     #[test]
@@ -164,7 +180,7 @@ mod tests {
         let report = scan(tree.path(), &ScanOptions::default()).expect("scans");
         assert_eq!(report.status, Status::MissingKeys);
         assert_eq!(report.summary.missing, 1);
-        assert_eq!(exit_code(&report), 1);
+        assert_eq!(exit_code(&report, false), 1);
     }
 
     /// A repository with no dotenv files is not out of sync. Failing a
@@ -174,7 +190,7 @@ mod tests {
         let tree = tree_with("scan-none", &[("README.md", "nothing here")]);
         let report = scan(tree.path(), &ScanOptions::default()).expect("scans");
         assert_eq!(report.status, Status::NoFiles);
-        assert_eq!(exit_code(&report), 0);
+        assert_eq!(exit_code(&report, false), 0);
     }
 
     #[test]
@@ -196,7 +212,7 @@ mod tests {
         .expect("scans");
         assert_eq!(templated.mode, "template");
         assert_eq!(templated.extra_keys[0].keys, ["LOCAL"]);
-        assert_eq!(exit_code(&templated), 1);
+        assert_eq!(exit_code(&templated, false), 1);
     }
 
     #[test]

@@ -102,20 +102,34 @@ fn is_hidden_directory(path: &StdPath) -> bool {
 
 /// Read one file into the shape the comparator takes.
 pub(crate) fn read(path: &PathBuf, root: &StdPath) -> Result<EnvFile, String> {
+    let bytes = std::fs::read(path).map_err(|error| format!("{}: {error}", path.display()))?;
     let content =
-        std::fs::read_to_string(path).map_err(|error| format!("{}: {error}", path.display()))?;
+        String::from_utf8(bytes).map_err(|_| format!("{}: not UTF-8 text", path.display()))?;
+    let content = without_bom(&content);
     let relative = path
         .strip_prefix(root)
         .unwrap_or(path)
         .to_string_lossy()
         .into_owned();
-    let parsed = parse(&content);
+    let parsed = parse(content);
     Ok(EnvFile {
         kind: detect_file_type(&relative),
         path: relative,
         keys: parsed.keys,
         errors: parsed.errors,
     })
+}
+
+/// Drop a leading byte-order mark.
+///
+/// No editor shows it and VS Code strips it before the extension ever
+/// sees a document, so without this the two frontends read the same file
+/// differently the moment anything on Windows saves it — Notepad, Excel,
+/// a PowerShell redirect. Here it would attach itself to the first key
+/// name, so `\u{feff}API_URL` and `API_URL` would read as two different
+/// keys and every file would look out of sync with every other.
+pub(crate) fn without_bom(content: &str) -> &str {
+    content.strip_prefix('\u{feff}').unwrap_or(content)
 }
 
 #[cfg(test)]
