@@ -9,19 +9,19 @@ This file covers the **VS Code extension**. The Rust CLI in `crate/` is a
 separate product on its own cadence and keeps its own
 [CHANGELOG](crate/CHANGELOG.md).
 
-## [Unreleased]
+## [2.2.5] - 2026-08-12
 
 ### Fixed
 
-- **A parse diagnostic no longer quotes the line it could not read.**
-  `Missing equals sign in "..."` and `Invalid key format "..."` echoed
-  file content verbatim, and both reach real value material: the
+- **A warning about a file it could not parse no longer quotes that
+  file.** `Missing equals sign in "..."` and `Invalid key format "..."`
+  printed the line back, and both reach real secret material: the
   continuation lines of a multi-line certificate have no `=` at all, and
   a connection string wrapped onto its own line has one inside its query
   parameters, which made the whole credential the "key" that failed to
-  parse. The messages now carry the line number and nothing else. No
-  value may leave this product, in a report or a diagnostic, and this was
-  the way one could.
+  parse. The warnings now give the line number and nothing else. This
+  extension reads key names and never values, and this was the way one
+  could get out.
 
 ### Added
 

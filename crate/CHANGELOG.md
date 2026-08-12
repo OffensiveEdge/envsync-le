@@ -7,31 +7,36 @@ this repository release on their own cadence.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.1] - 2026-08-12
 
 ### Fixed
 
-- **A parse diagnostic no longer quotes the line it could not read.**
-  `Missing equals sign in "..."` and `Invalid key format "..."` echoed
-  file content verbatim, and both reach real value material: the
+- **A report from Windows reads the same as a report from anywhere
+  else.** Paths came back with backslashes on Windows and forward
+  slashes on macOS and Linux, so one workspace described itself two ways
+  and a baseline committed on one machine broke on another. Every path
+  the report carries now spells its separators forward — including the
+  one naming a file that could not be read, which also gave an absolute
+  path where everything beside it was relative to the directory you
+  asked about.
+- **A warning about a file it could not parse no longer quotes that
+  file.** `Missing equals sign in "..."` and `Invalid key format "..."`
+  printed the line back, and both reach real secret material: the
   continuation lines of a multi-line certificate have no `=` at all, and
   a connection string wrapped onto its own line has one inside its query
   parameters, which made the whole credential the "key" that failed to
-  parse. The messages now carry the line number and nothing else. The
-  extension changed with it and the corpus records the new text — the
-  same tool must answer the same way on both servers.
-- **Whitespace is trimmed the way JavaScript trims it**, which is not the
-  way `char::is_whitespace` does. A byte-order mark anywhere but the
-  first byte is whitespace to the extension and was not to this crate, so
-  the same document read as an invalid key here and as an open quoted
-  value there — one frontend seeing the rest of the file and the other
-  not. U+0085 is the mirror image and is fixed with it.
-- **A named pipe is refused instead of read.** `--file` naming a FIFO
-  bypassed the walk's is-it-a-file guard and blocked forever; it is now a
-  `skipped` diagnostic like any other file that cannot be read.
-- **Every path in the report is relative and forward-slashed**,
-  including the one in a `skipped` diagnostic, which carried an absolute
-  platform-native path — backslashes and all, on Windows.
+  parse. The warnings now give the line number and nothing else. This
+  tool reads key names and never values, and this was the way one could
+  get out.
+- **A `.env` saved with a byte-order mark is read the way the editor
+  reads it.** Those three invisible bytes — what Notepad, Excel and a
+  PowerShell redirect all add — are whitespace to the extension and were
+  not to this crate, so the same file yielded different keys depending
+  on which one looked at it, and a quoted value opened in one and not
+  the other.
+- **A run that names a pipe ends.** `--file` pointing at a FIFO waited
+  forever for a writer; it is now reported as a file that could not be
+  read, like any other.
 
 ### Added
 
