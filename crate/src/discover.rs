@@ -49,7 +49,7 @@ impl Default for DiscoverOptions {
 /// cannot be diffed — which is most of what a report in CI is for.
 pub(crate) fn discover(root: &StdPath, options: &DiscoverOptions) -> Result<Vec<PathBuf>, String> {
     let metadata =
-        std::fs::metadata(root).map_err(|error| format!("{}: {error}", root.display()))?;
+        std::fs::metadata(root).map_err(|error| format!("{}: {error}", display(root)))?;
     if metadata.is_file() {
         return Ok(vec![root.to_path_buf()]);
     }
@@ -77,7 +77,7 @@ pub(crate) fn discover(root: &StdPath, options: &DiscoverOptions) -> Result<Vec<
 
     let mut files = Vec::new();
     for entry in builder.build() {
-        let entry = entry.map_err(|error| format!("{}: {error}", root.display()))?;
+        let entry = entry.map_err(|error| format!("{}: {error}", display(root)))?;
         if !entry.file_type().is_some_and(|kind| kind.is_file()) {
             continue;
         }
@@ -101,10 +101,23 @@ fn is_hidden_directory(path: &StdPath) -> bool {
 }
 
 /// Read one file into the shape the comparator takes.
+///
+/// A named pipe is not a file to compare, and `read` on one with no
+/// writer never returns — a run that hangs is worse than one that
+/// refuses, because nobody can tell it from a slow tree. The walk
+/// already skips anything that is not a regular file, but `--file`
+/// bypasses the walk, so the guard belongs here as well.
+/// The refusal carries **only the reason**. Every caller already knows
+/// which file it asked about and names it itself, so repeating the path
+/// here spelled it twice in one line — and spelled it in the platform's
+/// own alphabet, next to the same file named with forward slashes.
 pub(crate) fn read(path: &PathBuf, root: &StdPath) -> Result<EnvFile, String> {
-    let bytes = std::fs::read(path).map_err(|error| format!("{}: {error}", path.display()))?;
-    let content =
-        String::from_utf8(bytes).map_err(|_| format!("{}: not UTF-8 text", path.display()))?;
+    let metadata = std::fs::metadata(path).map_err(|error| error.to_string())?;
+    if !metadata.is_file() {
+        return Err("not a regular file".to_string());
+    }
+    let bytes = std::fs::read(path).map_err(|error| error.to_string())?;
+    let content = String::from_utf8(bytes).map_err(|_| "not UTF-8 text".to_string())?;
     let content = without_bom(&content);
     let relative = relative_path(path, root);
     let parsed = parse(content);
@@ -116,14 +129,6 @@ pub(crate) fn read(path: &PathBuf, root: &StdPath) -> Result<EnvFile, String> {
     })
 }
 
-/// Drop a leading byte-order mark.
-///
-/// No editor shows it and VS Code strips it before the extension ever
-/// sees a document, so without this the two frontends read the same file
-/// differently the moment anything on Windows saves it — Notepad, Excel,
-/// a PowerShell redirect. Here it would attach itself to the first key
-/// name, so `\u{feff}API_URL` and `API_URL` would read as two different
-/// keys and every file would look out of sync with every other.
 /// A path below `root`, always written with forward slashes.
 ///
 /// The separator reaches the report, so leaving it to the platform means
@@ -133,14 +138,53 @@ pub(crate) fn read(path: &PathBuf, root: &StdPath) -> Result<EnvFile, String> {
 /// one. The extension runs inside an editor that already normalises
 /// this, so forward slashes are also what the other frontend reports.
 pub(crate) fn relative_path(path: &StdPath, root: &StdPath) -> String {
-    path.strip_prefix(root)
-        .unwrap_or(path)
-        .components()
-        .map(|component| component.as_os_str().to_string_lossy())
-        .collect::<Vec<_>>()
-        .join("/")
+    display(path.strip_prefix(root).unwrap_or(path))
 }
 
+/// A path as the report spells it: forward slashes, on every platform.
+///
+/// **Every path that reaches stdout or stderr goes through here**, not
+/// only the one in `files[].path`. A diagnostic that names a file in the
+/// platform's own alphabet is the same bug in a quieter place — the
+/// report says `packages/api/.env` and the warning beside it says
+/// `packages\api\.env`, and a reader cannot tell whether they are the
+/// same file.
+///
+/// The rewrite is Windows-only, deliberately: `\` is a legal character
+/// in a Unix filename, and rewriting it there would rename the file in
+/// the report. Named `display` to match the sibling crates.
+pub(crate) fn display(path: &StdPath) -> String {
+    let rendered = path.to_string_lossy();
+    if cfg!(windows) {
+        return forward_slashes(&rendered);
+    }
+    rendered.into_owned()
+}
+
+/// The Windows half of `display`, written as a pure string function so
+/// that every platform compiles and tests it. A branch only Windows can
+/// execute is a branch only Windows CI can catch.
+fn forward_slashes(rendered: &str) -> String {
+    let bare = match rendered.strip_prefix(r"\\?\UNC\") {
+        // `\\?\UNC\server\share` is `\\server\share` written the long
+        // way, so dropping the whole prefix would lose the host.
+        Some(tail) => format!(r"\\{tail}"),
+        None => rendered
+            .strip_prefix(r"\\?\")
+            .unwrap_or(rendered)
+            .to_string(),
+    };
+    bare.replace('\\', "/")
+}
+
+/// Drop a leading byte-order mark.
+///
+/// No editor shows it and VS Code strips it before the extension ever
+/// sees a document, so without this the two frontends read the same file
+/// differently the moment anything on Windows saves it — Notepad, Excel,
+/// a PowerShell redirect. Here it would attach itself to the first key
+/// name, so `\u{feff}API_URL` and `API_URL` would read as two different
+/// keys and every file would look out of sync with every other.
 pub(crate) fn without_bom(content: &str) -> &str {
     content.strip_prefix('\u{feff}').unwrap_or(content)
 }
@@ -268,6 +312,58 @@ mod tests {
         assert_eq!(read.path, ".env.production");
         assert_eq!(read.keys, ["A", "B"]);
         assert!(read.errors.is_empty());
+    }
+
+    /// The Windows rewrite, tested on every platform. This crate shipped
+    /// `\` in its reports for a release because the only machine that
+    /// could see the bug was the only machine nothing asserted on.
+    #[test]
+    fn a_reported_path_spells_its_separators_forward() {
+        assert_eq!(
+            forward_slashes(r"C:\Users\me\src\.env.production"),
+            "C:/Users/me/src/.env.production"
+        );
+        assert_eq!(forward_slashes("packages/api/.env"), "packages/api/.env");
+        // A verbatim prefix is an implementation detail of long paths and
+        // has no business in a report.
+        assert_eq!(forward_slashes(r"\\?\C:\src\.env"), "C:/src/.env");
+        // Except on a UNC share, where dropping the whole prefix would
+        // lose the host.
+        assert_eq!(
+            forward_slashes(r"\\?\UNC\server\share\.env"),
+            "//server/share/.env"
+        );
+    }
+
+    /// A backslash is a legal character in a unix filename, so the
+    /// rewrite must not reach it there.
+    #[cfg(unix)]
+    #[test]
+    fn a_backslash_in_a_unix_filename_is_not_a_separator() {
+        let tree = TempTree::new("discover-backslash");
+        let file = tree.write("odd\\name.env", "A=1");
+        assert_eq!(display(&file), file.to_string_lossy());
+        assert!(display(&file).contains("odd\\name.env"));
+    }
+
+    /// **Regression.** `--file` named a FIFO and the run never ended:
+    /// `std::fs::read` on a pipe with no writer blocks forever, and a
+    /// tool that hangs is indistinguishable from a slow one.
+    #[cfg(unix)]
+    #[test]
+    fn a_named_pipe_is_refused_rather_than_read() {
+        let tree = TempTree::new("discover-fifo");
+        let fifo = tree.path().join(".env.fifo");
+        let made = std::process::Command::new("mkfifo")
+            .arg(&fifo)
+            .status()
+            .is_ok_and(|status| status.success());
+        if !made {
+            eprintln!("SKIPPED a_named_pipe_is_refused_rather_than_read: no mkfifo here");
+            return;
+        }
+        let error = read(&fifo, tree.path()).expect_err("a refusal");
+        assert!(error.contains("not a regular file"), "{error}");
     }
 
     /// Forward slashes on every platform. The separator reaches the

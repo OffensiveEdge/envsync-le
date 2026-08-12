@@ -38,14 +38,18 @@ export function parseDotenvFile(
 			continue;
 		}
 
+		// Neither message quotes the line. A diagnostic that echoes what it
+		// could not parse is the one way a value leaves this product, and
+		// both of these reach real value material: the continuation lines
+		// of a multi-line certificate have no '=' at all, and a connection
+		// string wrapped onto its own line has one inside its query
+		// parameters — which makes the whole credential the "key" that
+		// failed to parse. The line number is the pointer; the content
+		// stays in the file.
 		const equalIndex = line.indexOf('=');
 		if (equalIndex === -1) {
 			errors.push(
-				createParseError(
-					lineNumber,
-					`Missing equals sign in "${line}"`,
-					filepath,
-				),
+				createParseError(lineNumber, 'Missing equals sign', filepath),
 			);
 			continue;
 		}
@@ -63,9 +67,7 @@ export function parseDotenvFile(
 		}
 
 		if (!KEY_PATTERN.test(key)) {
-			errors.push(
-				createParseError(lineNumber, `Invalid key format "${key}"`, filepath),
-			);
+			errors.push(createParseError(lineNumber, 'Invalid key format', filepath));
 			continue;
 		}
 

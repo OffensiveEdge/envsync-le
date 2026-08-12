@@ -7,6 +7,44 @@ this repository release on their own cadence.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **A parse diagnostic no longer quotes the line it could not read.**
+  `Missing equals sign in "..."` and `Invalid key format "..."` echoed
+  file content verbatim, and both reach real value material: the
+  continuation lines of a multi-line certificate have no `=` at all, and
+  a connection string wrapped onto its own line has one inside its query
+  parameters, which made the whole credential the "key" that failed to
+  parse. The messages now carry the line number and nothing else. The
+  extension changed with it and the corpus records the new text — the
+  same tool must answer the same way on both servers.
+- **Whitespace is trimmed the way JavaScript trims it**, which is not the
+  way `char::is_whitespace` does. A byte-order mark anywhere but the
+  first byte is whitespace to the extension and was not to this crate, so
+  the same document read as an invalid key here and as an open quoted
+  value there — one frontend seeing the rest of the file and the other
+  not. U+0085 is the mirror image and is fixed with it.
+- **A named pipe is refused instead of read.** `--file` naming a FIFO
+  bypassed the walk's is-it-a-file guard and blocked forever; it is now a
+  `skipped` diagnostic like any other file that cannot be read.
+- **Every path in the report is relative and forward-slashed**,
+  including the one in a `skipped` diagnostic, which carried an absolute
+  platform-native path — backslashes and all, on Windows.
+
+### Added
+
+- **Six CI jobs**, each pinning a class of bug that reached a release
+  once: `hazards` (byte-order marks, undecodable files, FIFOs, symlink
+  loops, 260-character paths, on all three platforms), `platform` (path
+  separators, `TZ` independence, case-folding filesystems, reserved
+  Windows names, stdin closed early), `differential` (generated documents
+  through both MCP servers), `fuzz` (sixty seconds against the parser,
+  asserting no value ever leaves), `budget` (a wall-clock ceiling and a
+  linearity check), and `coverage-matrix` (every name the corpus
+  classifies, opened and typed by the real binary).
+
 ## [0.1.0] - 2026-08-11
 
 First release. The extension's detection engine, ported and pinned

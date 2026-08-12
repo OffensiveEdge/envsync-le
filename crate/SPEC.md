@@ -81,7 +81,10 @@ Ported from `parser.ts`, including the parts that look like bugs and are
 not:
 
 - A key must match `^[a-zA-Z_][a-zA-Z0-9_-]*$`. Anything else to the left
-  of `=` is a parse error naming that line.
+  of `=` is a parse error naming that line **by number, never by
+  quoting it** — a line with no `=` is often the continuation of a
+  multi-line certificate, and a line with one inside a query string is
+  often a whole connection URL.
 - A leading `export ` is accepted and stripped.
 - A duplicate key counts once — dotenv itself keeps one occurrence.
 - **A quoted value may span lines**, and its continuation lines must be
@@ -178,6 +181,43 @@ would make the default find nothing.
   against both.
 - **`envsync_le_check` is this server's own**: a directory in, the
   discovery and the same report the CLI writes.
+
+## Deliberate divergences
+
+The extension is **IDE-first**: one workspace, a person reading results
+in an editor. The CLI is **terminal-first**: whole trees, exit codes,
+piping, automation. Each works the way its own use case expects, so the
+list below is design rather than drift.
+
+- **Discovery.** The CLI walks a tree and honours `.gitignore`; the
+  extension answers about the workspace the editor already has open.
+- **`--template`, `--strict`, `--exclude`, `--hidden`, `--no-ignore`**
+  and the exit codes are terminal-side only. There is nothing for an
+  editor to branch on.
+- **The report has no timestamp**, for the reason above.
+- **Corpus documents are stored with a `dot` prefix** on disk, because
+  `cargo package` skips dotfiles; both frontends map between the two.
+
+What may **never** differ:
+
+- **`compare_env_files` is one tool, not two similar ones.** Same
+  schema, same envelope, same answer, whichever server an agent reaches.
+  `fixtures/mcp-compare-env-files.json` pins hand-written cases and
+  `scripts/check-differential.ts` generates the rest.
+- **No value ever leaves, on either surface, under any input.** Not in a
+  report, not in a diagnostic, not in a refusal.
+- **The unterminated-quote behaviour.** If one side swallowed the rest
+  of the file and the other did not, the two would silently disagree
+  about how much of a document was read.
+
+### Whitespace is JavaScript's, not Rust's
+
+The parser trims exactly the characters `String.prototype.trim` removes,
+which is **not** `char::is_whitespace`. Two characters differ and both
+showed up as the two frontends disagreeing about a real file: **U+FEFF**,
+a byte-order mark anywhere but the first byte, which JavaScript trims and
+Rust does not; and **U+0085**, NEL, which Rust trims and JavaScript does
+not. `export\s+` is stripped against the same set.
 
 ## Non-goals
 

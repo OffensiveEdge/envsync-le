@@ -11,6 +11,18 @@ separate product on its own cadence and keeps its own
 
 ## [Unreleased]
 
+### Fixed
+
+- **A parse diagnostic no longer quotes the line it could not read.**
+  `Missing equals sign in "..."` and `Invalid key format "..."` echoed
+  file content verbatim, and both reach real value material: the
+  continuation lines of a multi-line certificate have no `=` at all, and
+  a connection string wrapped onto its own line has one inside its query
+  parameters, which made the whole credential the "key" that failed to
+  parse. The messages now carry the line number and nothing else. No
+  value may leave this product, in a report or a diagnostic, and this was
+  the way one could.
+
 ### Added
 
 - A **Rust CLI and MCP server**, in [`crate/`](crate/README.md), to be

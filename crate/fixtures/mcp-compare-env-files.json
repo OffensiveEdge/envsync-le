@@ -242,7 +242,7 @@
 				{
 					"severity": "error",
 					"code": "parse-error",
-					"message": ".env.broken: Line 2: Invalid key format \"2BAD_KEY\""
+					"message": ".env.broken: Line 2: Invalid key format"
 				},
 				{
 					"severity": "error",
@@ -252,7 +252,7 @@
 				{
 					"severity": "error",
 					"code": "parse-error",
-					"message": ".env.broken: Line 4: Missing equals sign in \"MISSING_EQUALS\""
+					"message": ".env.broken: Line 4: Missing equals sign"
 				}
 			],
 			"meta": {

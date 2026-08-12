@@ -39,7 +39,7 @@
 			"errors": [
 				{
 					"type": "parse-error",
-					"message": "Line 2: Invalid key format \"2BAD_KEY\""
+					"message": "Line 2: Invalid key format"
 				},
 				{
 					"type": "parse-error",
@@ -47,7 +47,7 @@
 				},
 				{
 					"type": "parse-error",
-					"message": "Line 4: Missing equals sign in \"MISSING_EQUALS\""
+					"message": "Line 4: Missing equals sign"
 				}
 			]
 		},

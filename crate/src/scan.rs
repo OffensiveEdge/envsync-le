@@ -66,7 +66,12 @@ pub(crate) fn scan_paths(paths: &[PathBuf], root: &StdPath, options: &ScanOption
     for path in paths {
         match discover::read(path, root) {
             Ok(file) => files.push(file),
-            Err(reason) => skipped.push((path.display().to_string(), reason)),
+            // Named the same way a file that *was* read is named:
+            // relative to the root and with forward slashes. Reaching
+            // for `Path::display` here spelled one report two ways —
+            // an absolute, platform-native path for the file that was
+            // skipped and a relative one for every file beside it.
+            Err(reason) => skipped.push((discover::relative_path(path, root), reason)),
         }
     }
     let mut report = report_for(&files, options);

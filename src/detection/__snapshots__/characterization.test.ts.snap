@@ -336,7 +336,7 @@ exports[`parser characterization > parses tricky.env 1`] = `
   "errors": [
     {
       "filepath": "tricky.env",
-      "message": "Line 5: Missing equals sign in "NO_EQUALS_LINE"",
+      "message": "Line 5: Missing equals sign",
       "type": "parse-error",
     },
     {
@@ -346,12 +346,12 @@ exports[`parser characterization > parses tricky.env 1`] = `
     },
     {
       "filepath": "tricky.env",
-      "message": "Line 7: Invalid key format "KEY WITH SPACES"",
+      "message": "Line 7: Invalid key format",
       "type": "parse-error",
     },
     {
       "filepath": "tricky.env",
-      "message": "Line 8: Invalid key format "INVALID!CHARS"",
+      "message": "Line 8: Invalid key format",
       "type": "parse-error",
     },
   ],

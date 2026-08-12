@@ -198,9 +198,30 @@ The bar, enforced by review:
   operation, so they run everywhere on every push. A new refusal adds
   its case there.
 - **Anything needing a document larger than an editor opens is
-  `tests/scenarios.rs`** — gated behind `STRING_LE_SCENARIOS` and run by
+  `tests/scenarios.rs`** — gated behind `ENVSYNC_LE_SCENARIOS` and run by
   CI on all three OSes. A skipped scenario is never reported as a pass; each one says
   plainly that it did not run.
+- **Six more layers, one per class of bug that reached a release.** Each
+  has its own CI job and its own file:
+  - `tests/hazards.rs` — inputs a real repository holds and a fixture
+    directory cannot: a byte-order mark, an undecodable file, a FIFO, a
+    symlink loop, a 260-character path. Built at runtime, because
+    Windows cannot check half of it into git, and every case the
+    platform cannot express is skipped **by name**.
+  - `tests/platform.rs` — path separators, `TZ` independence, a
+    case-folding filesystem, reserved Windows names, stdin closed early.
+  - `../scripts/check-differential.ts` — generated documents through
+    **both** MCP servers. Scoped to the shared tool; see SPEC.md,
+    "Deliberate divergences", for what the two surfaces may differ on.
+  - `tests/fuzz.rs` — time-boxed against the parser through
+    `compare_env_files`, so the target is the pure layer and not the
+    walk. Its first property is that no value ever leaves.
+  - `tests/budget.rs` — a wall-clock ceiling, and four times the tree
+    costing at most six times the clock.
+  - `tests/coverage_matrix.rs` — every name the shared corpus
+    classifies, written to disk and opened by the real binary. A name
+    that classifies correctly in a unit test but that the walk never
+    reaches is a crate that opens fewer files than it claims.
 - **Every bug fix ships with a regression test** that fails before the
   fix. Three divergences got through a green suite here and were caught
   the first time the corpus and then the binary actually ran: rust-ini

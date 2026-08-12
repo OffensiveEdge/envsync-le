@@ -1,12 +1,13 @@
-//! The agent surface: the same extraction over the Model Context
-//! Protocol on stdio, so a model can ask for the URLs rather than be
-//! handed the files and pattern-match them itself.
+//! The agent surface: the same comparison over the Model Context
+//! Protocol on stdio, so a model can ask whether the dotenv files agree
+//! rather than be handed them and diff the key names itself.
 //!
 //! Two rules the family's MCP surfaces established:
 //!
-//! - **An empty answer is not an error.** A document with no URLs comes
-//!   back as an ordinary result carrying `ok: true` — the scan ran.
-//!   Only a malformed question is a protocol error.
+//! - **A negative answer is not an error.** A tree whose files disagree
+//!   comes back as an ordinary result — `ok` reports that the check
+//!   ran, never that the answer was yes. Only a malformed question is a
+//!   protocol error.
 //! - **Refusals speak the caller's vocabulary.** An MCP caller has no
 //!   command line, so no message here mentions a flag.
 //!
