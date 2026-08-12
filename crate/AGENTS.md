@@ -20,7 +20,7 @@ Code extension, and CI fails when either side drifts from it.
 opinion; this answers a yes-or-no question and the exit code is the
 product. There is nothing to grep and nothing to pipe onward.
 
-**Status: built, unpublished.** All seven extractors, both surfaces and
+**Status: released.** All seven extractors, both surfaces and
 the test layers below are green. Releases go out through
 `release-crate.yml`, which is dispatch-only and refuses a version that
 crates.io already carries, has no changelog entry, would ship a tarball
