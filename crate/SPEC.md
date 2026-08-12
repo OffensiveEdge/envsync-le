@@ -4,10 +4,11 @@ A port of the [EnvSync-LE](https://github.com/nolindnaidoo/envsync-le)
 VS Code extension to a Rust CLI and MCP server: compare the dotenv files
 in a tree and say which keys are missing from which.
 
-**Parity first.** The extension is the reference implementation. The
-keys this parses, the mismatches it reports, and the order of both must
-match what the extension produces. A difference is a regression until
-proven otherwise.
+**One answer is held equal; the surfaces are not.** The shared
+`compare_env_files` MCP tool must return the same keys, mismatches, and the order of both
+from either server — a difference there is a bug. Everything else is
+IDE-first in the extension and terminal-first here, and is meant to
+differ. See "Deliberate divergences".
 
 ## The one question
 

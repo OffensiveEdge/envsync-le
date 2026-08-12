@@ -42,11 +42,16 @@ artifact users actually install.
   byte-identical across the family; a change here needs copying to the other
   nine. See `../CLAUDE.md`. `ci-crate.yml` and `release-crate.yml` are the
   exception — they exist only in the repos that ship a crate.
-- **Detection is shared with the Rust CLI.** `src/detection/**` is the
-  reference implementation for `crate/`, and `crate/fixtures/` is the contract
-  between them. Changing detection behaviour means running
+- **Detection is shared with the Rust CLI**, and the corpus under `crate/` is
+  the contract. Changing detection behaviour means running
   `bun scripts/check-detection-parity.ts` and updating the corpus — on both
   sides, in the same commit. CI fails when either drifts.
+- **What the contract holds equal is the shared `compare_env_files` MCP tool**,
+  which both servers offer and must answer identically; a difference there
+  is a bug. **The surfaces are meant to differ.** This one is IDE-first —
+  the workspace's env files, discovered and watched as a set — this is the one extension with no `activeTextEditor` at all, because a drift check is about a file set and never about one buffer. The CLI is terminal-first: a tree walk,
+  exit codes and JSON Lines, none of which has an editor equivalent. That
+  is not drift, and nothing holds them equal — see `crate/SPEC.md`.
 - **No value ever reaches an answer.** Only key names are parsed, compared or
   reported. The parity script greps the corpus for a value and fails if it
   finds one; the crate does the same to its embedded copy.
