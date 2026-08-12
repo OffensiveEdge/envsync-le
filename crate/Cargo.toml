@@ -10,7 +10,7 @@ authors = ["Nolin D Naidoo"]
 homepage = "https://letools.dev/tools/envsync-le"
 repository = "https://github.com/nolindnaidoo/envsync-le"
 keywords = ["dotenv", "env", "environment", "linter", "config"]
-categories = ["command-line-utilities", "development-tools", "config", "development-tools::testing", "parsing"]
+categories = ["command-line-utilities", "development-tools", "config", "text-processing", "parsing"]
 # What a consumer gets, and why.
 #
 # Ships: src/, Cargo.toml, Cargo.lock, LICENSE, README.md — needed to
