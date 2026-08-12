@@ -96,7 +96,6 @@ diffing a report against a baseline.
 that cannot run its own tests. The corpus keeps the real names, because
 classification reads them.
 
-[0.1.0]: https://github.com/nolindnaidoo/envsync-le/releases/tag/crate-v0.1.0
 
 ### Fixed
 
@@ -118,3 +117,6 @@ classification reads them.
 - **A file that is not text is named rather than dropped.** It used to
   vanish from the report entirely, which reads to whoever ran it as
   "that file was clean".
+
+[0.1.1]: https://crates.io/crates/envsync-le/0.1.1
+[0.1.0]: https://crates.io/crates/envsync-le/0.1.0

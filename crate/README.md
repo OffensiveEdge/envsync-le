@@ -147,6 +147,8 @@ make the default find nothing at all.
 --exclude <glob>     skip files matching this pattern; repeatable
 --hidden             descend hidden directories too
 --no-ignore          walk files that .gitignore excludes
+--strict             exit 2 if any file could not be read, rather than
+                     naming it and comparing the rest
 ```
 
 An exclude pattern that will not compile excludes **nothing**, rather
