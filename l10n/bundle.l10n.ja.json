@@ -13,7 +13,6 @@
 	"Extra keys in {0}: {1}": "{0}の追加キー：{1}",
 	"Failed to check dotenv sync: {0}": "dotenvの同期の確認に失敗しました：{0}",
 	"Failed to parse {0}: {1}": "{0} の解析に失敗しました：{1}",
-	"Initial sync check failed: {0}": "初期同期のチェックに失敗しました：{0}",
 	"Missing keys in {0}: {1}": "{0} に含まれていないキー：{1}",
 	"No .env files found in workspace": "ワークスペース内に .env ファイルが見つかりませんでした",
 	"No files are currently being ignored": "現在、無視されているファイルはありません",

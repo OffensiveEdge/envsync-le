@@ -13,7 +13,6 @@
 	"Extra keys in {0}: {1}": "Chiavi aggiuntive in “{0}”: {1}",
 	"Failed to check dotenv sync: {0}": "Impossibile verificare la sincronizzazione di dotenv: {0}",
 	"Failed to parse {0}: {1}": "Impossibile analizzare {0}: {1}",
-	"Initial sync check failed: {0}": "Errore durante il controllo di sincronizzazione iniziale: {0}",
 	"Missing keys in {0}: {1}": "Chiavi mancanti in {0}: {1}",
 	"No .env files found in workspace": "Nessun file .env trovato nell'area di lavoro",
 	"No files are currently being ignored": "Al momento non vi sono file ignorati",

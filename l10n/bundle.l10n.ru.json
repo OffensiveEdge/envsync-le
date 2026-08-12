@@ -13,7 +13,6 @@
 	"Extra keys in {0}: {1}": "Дополнительные клавиши в «{0}»: {1}",
 	"Failed to check dotenv sync: {0}": "Не удалось проверить синхронизацию dotenv: {0}",
 	"Failed to parse {0}: {1}": "Не удалось проанализировать {0}: {1}",
-	"Initial sync check failed: {0}": "Сбой при проверке первоначальной синхронизации: {0}",
 	"Missing keys in {0}: {1}": "Отсутствующие ключи в файле «{0}»: {1}",
 	"No .env files found in workspace": "В рабочей области не найдено файлов .env",
 	"No files are currently being ignored": "В настоящее время никакие файлы не игнорируются",

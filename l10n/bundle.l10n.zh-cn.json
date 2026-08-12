@@ -13,7 +13,6 @@
 	"Extra keys in {0}: {1}": "{0} 中的额外键：{1}",
 	"Failed to check dotenv sync: {0}": "无法检查 dotenv 同步：{0}",
 	"Failed to parse {0}: {1}": "无法解析 {0}：{1}",
-	"Initial sync check failed: {0}": "初始同步检查失败：{0}",
 	"Missing keys in {0}: {1}": "{0} 中缺少键：{1}",
 	"No .env files found in workspace": "在工作区中未找到 .env 文件",
 	"No files are currently being ignored": "目前没有被忽略的文件",

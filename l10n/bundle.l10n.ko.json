@@ -13,7 +13,6 @@
 	"Extra keys in {0}: {1}": "{0}의 추가 키: {1}",
 	"Failed to check dotenv sync: {0}": "dotenv 동기화 확인에 실패했습니다: {0}",
 	"Failed to parse {0}: {1}": "{0} 구문 분석에 실패했습니다: {1}",
-	"Initial sync check failed: {0}": "초기 동기화 확인에 실패했습니다: {0}",
 	"Missing keys in {0}: {1}": "{0}에 누락된 키: {1}",
 	"No .env files found in workspace": "작업 공간에서 .env 파일이 발견되지 않았습니다.",
 	"No files are currently being ignored": "현재 무시되고 있는 파일이 없습니다.",

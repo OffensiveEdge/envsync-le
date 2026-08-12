@@ -13,7 +13,6 @@
 	"Extra keys in {0}: {1}": "Kunci tambahan di {0}: {1}",
 	"Failed to check dotenv sync: {0}": "Gagal memeriksa sinkronisasi dotenv: {0}",
 	"Failed to parse {0}: {1}": "Gagal mengurai {0}: {1}",
-	"Initial sync check failed: {0}": "Pemeriksaan sinkronisasi awal gagal: {0}",
 	"Missing keys in {0}: {1}": "Kunci yang hilang di {0}: {1}",
 	"No .env files found in workspace": "Tidak ditemukan berkas .env di ruang kerja",
 	"No files are currently being ignored": "Saat ini tidak ada berkas yang diabaikan",

@@ -163,6 +163,22 @@ describe('EnvSync-LE localization', function () {
 				);
 			}
 		}
+
+		// The loop above compares the translations to each other, which is why
+		// twelve unanimous orphans once passed: a string demoted from l10n.t()
+		// to console.error stayed in all twelve bundles while the English
+		// source quietly dropped to 31 keys, and nothing compared the two.
+		// English is not packaged, but it is the record of which keys exist.
+		const english = Object.keys(
+			JSON.parse(
+				readFileSync(join(root, 'l10n', 'bundle.l10n.json'), 'utf8'),
+			) as Record<string, string>,
+		).sort();
+		assert.deepStrictEqual(
+			reference ?? [],
+			english,
+			'translated bundles disagree with the English source bundle',
+		);
 	});
 
 	it('substitutes positional placeholders at runtime', () => {

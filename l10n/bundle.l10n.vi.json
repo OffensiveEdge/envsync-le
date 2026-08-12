@@ -13,7 +13,6 @@
 	"Extra keys in {0}: {1}": "Các phím tắt bổ sung trong trò chơi “{0}”: {1}",
 	"Failed to check dotenv sync: {0}": "Không thể kiểm tra đồng bộ hóa dotenv: {0}",
 	"Failed to parse {0}: {1}": "Không thể phân tích cú pháp {0}: {1}",
-	"Initial sync check failed: {0}": "Kiểm tra đồng bộ hóa ban đầu không thành công: {0}",
 	"Missing keys in {0}: {1}": "Các khóa còn thiếu trong tệp `{0}`: {1}",
 	"No .env files found in workspace": "Không tìm thấy tệp .env nào trong không gian làm việc",
 	"No files are currently being ignored": "Hiện tại không có tệp nào bị bỏ qua",
