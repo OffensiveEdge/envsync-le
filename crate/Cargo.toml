@@ -5,12 +5,12 @@ edition = "2024"
 rust-version = "1.88"
 license = "MIT"
 readme = "README.md"
-description = "Compare the dotenv files in a tree and say which keys are missing from which"
+description = "Compare the dotenv files in a tree and say which keys are missing from which — a .env linter for CI that never reads a value"
 authors = ["Nolin D Naidoo"]
 homepage = "https://letools.dev/tools/envsync-le"
 repository = "https://github.com/nolindnaidoo/envsync-le"
-keywords = ["dotenv", "env", "config", "audit", "cli"]
-categories = ["command-line-utilities", "development-tools", "text-processing"]
+keywords = ["dotenv", "env", "environment", "linter", "config"]
+categories = ["command-line-utilities", "development-tools", "config", "development-tools::testing", "parsing"]
 # What a consumer gets, and why.
 #
 # Ships: src/, Cargo.toml, Cargo.lock, LICENSE, README.md — needed to
