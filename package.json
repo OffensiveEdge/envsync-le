@@ -223,7 +223,7 @@
 			}
 		]
 	},
-	"description": "Spot missing keys across your .env files - automatic checks, a status bar counter, and a markdown report. Auto, manual, and template comparison modes.",
+	"description": "Compare the dotenv files in a tree, and say which keys are missing from which",
 	"displayName": "EnvSync-LE",
 	"engines": {
 		"vscode": "^1.101.0",
