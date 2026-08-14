@@ -35,6 +35,14 @@ separate product on its own cadence and keeps its own
   is the contract. That corpus is also checked for leaked values on every
   run: only key names may appear in it, on either side.
 
+### Changed
+
+- **New icon artwork.** All sixteen tools were redrawn in one style, so
+  the family reads as one set wherever the listings sit side by side —
+  the Marketplace, Open VSX and letools.dev. The framing is unchanged:
+  the drawing fills 65.8% of an 800×800 canvas, and every smaller size
+  is derived from that one file rather than drawn again.
+
 ## [2.2.4] - 2026-08-07
 
 ### Changed
