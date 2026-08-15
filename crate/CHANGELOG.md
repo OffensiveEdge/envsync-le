@@ -7,6 +7,39 @@ this repository release on their own cadence.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-08-15
+
+The exit code is this tool's product, and two defects made it answer
+wrongly on the layout the README opens with.
+
+### Fixed
+
+- **A git-ignored dotenv file is still compared.** `.env.example`
+  committed and `.env*` ignored is the near-universal shape, and the
+  walk honoured the ignore rules — so discovery found only the example,
+  compared it against nothing, and reported `in sync` at exit 0 while
+  production was missing a key. `diagnostics` was empty, so nothing said
+  a file had been skipped. The default is now to see them; the
+  discovery options still honour the ignore rules when asked, and
+  `--no-ignore` is accepted and documented as the default it now is.
+
+  The hazard was already understood one field away: `hidden` carries a
+  comment saying `.env` is hidden by definition and that treating it the
+  way the sibling crates do would find nothing at all. The same
+  reasoning applies to `.gitignore` and had not been carried across.
+
+- **`--template` matches however it is spelled.** It compared the given
+  string against the discovered relative path, so `./.env.example`, an
+  absolute path, or `sub/.env` all missed a file that was present and
+  fell through to union mode — silently, with `"mode":"template"` still
+  in the report, `extraKeys` emptied, and the blame inverted onto the
+  contract file. A suffix must land on a component boundary, so
+  `.env.example` does not answer for `my.env.example`.
+
+- **"N files with mismatches" counts files.** It summed missing and
+  extra entries, so one file missing two keys and holding one extra read
+  as "3 files with mismatches across 3 files".
+
 ## [0.1.3] - 2026-08-15
 
 ### Added
@@ -146,6 +179,7 @@ classification reads them.
   vanish from the report entirely, which reads to whoever ran it as
   "that file was clean".
 
+[0.2.0]: https://crates.io/crates/envsync-le/0.2.0
 [0.1.3]: https://crates.io/crates/envsync-le/0.1.3
 [0.1.2]: https://crates.io/crates/envsync-le/0.1.2
 [0.1.1]: https://crates.io/crates/envsync-le/0.1.1

@@ -107,7 +107,19 @@ pub(crate) fn compare(files: &[EnvFile], options: Options) -> Report {
         // rather than failing. Naming a file that is not there is a
         // question about a tree that does not exist, and answering it
         // with every key present is more use than an error.
-        Mode::Template(path) => files.iter().find(|file| file.path == path),
+        // **Matched by the name it ends in, not by the spelling given.**
+        // `file.path` is the discovered relative path, so a template
+        // named `./.env.example`, `<abs>/.env.example` or
+        // `sub/.env.example` compared unequal to `.env.example` and fell
+        // through to the union — silently, with `"mode":"template"` still
+        // in the report and `extraKeys` emptied, so the blame inverted
+        // onto the contract file. Only one spelling of a present file
+        // worked, and it was not the one a person types beside the
+        // directory argument.
+        Mode::Template(path) => files
+            .iter()
+            .find(|file| file.path == path)
+            .or_else(|| files.iter().find(|file| same_file(&file.path, path))),
         Mode::Auto => None,
     };
     let reference: Vec<String> = match template {
@@ -156,6 +168,30 @@ fn union_of(files: &[EnvFile]) -> Vec<String> {
         }
     }
     union
+}
+
+/// Whether a discovered path and a named template are the same file.
+///
+/// Compared by trailing component rather than by canonicalising: the
+/// discovered path is relative to the root that was walked, the named
+/// one is whatever was typed, and neither is resolved against the
+/// filesystem here — `compare` reads no files. A template that names
+/// more than a base name must match that much of the tail, so
+/// `config/.env.example` does not answer for `other/.env.example`.
+fn same_file(discovered: &str, named: &str) -> bool {
+    let discovered = discovered.trim_start_matches("./");
+    let named = named.trim_start_matches("./");
+    if discovered == named {
+        return true;
+    }
+    // One is a suffix of the other on a component boundary.
+    let (long, short) = if discovered.len() >= named.len() {
+        (discovered, named)
+    } else {
+        (named, discovered)
+    };
+    long.strip_suffix(short)
+        .is_some_and(|prefix| prefix.is_empty() || prefix.ends_with('/'))
 }
 
 fn find_missing(files: &[EnvFile], reference: &[String], case_sensitive: bool) -> Vec<Mismatch> {
@@ -242,6 +278,34 @@ fn status_of(missing: &[Mismatch], extra: &[Mismatch]) -> Status {
         Status::ExtraKeys
     } else {
         Status::InSync
+    }
+}
+
+#[cfg(test)]
+mod same_file_tests {
+    use super::same_file;
+
+    /// Only one spelling of a present file used to match, and it was
+    /// not the one a person types beside the directory argument. The
+    /// failure was silent: `"mode":"template"` stayed in the report,
+    /// `extraKeys` emptied, and the blame inverted onto the contract.
+    #[test]
+    fn a_template_matches_however_it_is_spelled() {
+        assert!(same_file(".env.example", ".env.example"));
+        assert!(same_file(".env.example", "./.env.example"));
+        assert!(same_file(".env.example", "/abs/path/.env.example"));
+        assert!(same_file("sub/.env", "sub/.env"));
+        assert!(same_file("sub/.env", "/abs/sub/.env"));
+    }
+
+    /// A suffix must land on a component boundary, or `.env.example`
+    /// would answer for `my.env.example` and a template would name a
+    /// file nobody meant.
+    #[test]
+    fn a_partial_component_is_not_the_same_file() {
+        assert!(!same_file(".env.example", "my.env.example"));
+        assert!(!same_file("config/.env", "other/.env.example"));
+        assert!(!same_file(".env", ".env.local"));
     }
 }
 

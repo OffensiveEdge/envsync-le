@@ -20,7 +20,11 @@ use crate::detect::compare::EnvFile;
 use crate::detect::heuristics::{detect_file_type, is_env_file, should_exclude};
 use crate::detect::parser::parse;
 
-#[derive(Debug, Clone)]
+/// Every field'''s default is the permissive one, so this derives rather
+/// than spelling them out: a dotenv file is hidden by name and
+/// git-ignored by design, and a default that cannot see the files is
+/// not conservative, it is a wrong answer.
+#[derive(Debug, Clone, Default)]
 pub(crate) struct DiscoverOptions {
     /// Descend hidden **directories**.
     ///
@@ -28,18 +32,18 @@ pub(crate) struct DiscoverOptions {
     /// so treating this the way the sibling crates do would make the
     /// default find nothing at all.
     pub(crate) hidden: bool,
+    /// Honour `.gitignore` and friends.
+    ///
+    /// **Off by default, for the reason directly above.** A dotenv file
+    /// is git-ignored by design — that is the practice this tool exists
+    /// to support — so the near-universal repository has `.env.example`
+    /// committed and `.env*` ignored. Honouring the ignore rules found
+    /// only the example, compared it against nothing, and reported
+    /// `in sync` at exit 0 while production was missing a key. The exit
+    /// code is this tool's whole product, so a default that cannot see
+    /// the files is not a conservative default, it is a wrong answer.
     pub(crate) respect_ignore: bool,
     pub(crate) exclude: Vec<String>,
-}
-
-impl Default for DiscoverOptions {
-    fn default() -> Self {
-        Self {
-            hidden: false,
-            respect_ignore: true,
-            exclude: Vec::new(),
-        }
-    }
 }
 
 /// The dotenv files under `root`, in a stable order.
@@ -257,14 +261,35 @@ mod tests {
         assert_eq!(names(&found), [".env"]);
     }
 
+    /// **The shape of nearly every repository**: `.env.example`
+    /// committed, `.env` ignored. Skipping the ignored one left the
+    /// example to be compared against nothing, which reported `in sync`
+    /// at exit 0 — the tool's whole product, answered wrongly, on the
+    /// layout its own README opens with.
     #[test]
-    fn ignored_files_are_skipped() {
+    fn an_ignored_dotenv_is_still_compared() {
         let tree = TempTree::new("discover-ignore");
         tree.mkdir(".git");
         tree.write(".gitignore", ".env\n");
         tree.write(".env", "A=1");
         tree.write(".env.example", "A=");
         let found = discover(tree.path(), &DiscoverOptions::default()).expect("walks");
+        assert_eq!(names(&found), [".env", ".env.example"]);
+    }
+
+    /// The ignore rules are still honoured when something asks for it.
+    #[test]
+    fn the_ignore_rules_are_honoured_on_request() {
+        let tree = TempTree::new("discover-ignore-on");
+        tree.mkdir(".git");
+        tree.write(".gitignore", ".env\n");
+        tree.write(".env", "A=1");
+        tree.write(".env.example", "A=");
+        let options = DiscoverOptions {
+            respect_ignore: true,
+            ..DiscoverOptions::default()
+        };
+        let found = discover(tree.path(), &options).expect("walks");
         assert_eq!(names(&found), [".env.example"]);
     }
 

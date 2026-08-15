@@ -321,3 +321,45 @@ fn the_cli_and_the_mcp_server_report_the_same_thing() {
         "the two surfaces disagree"
     );
 }
+
+/// **The shape of nearly every repository**: `.env.example` committed,
+/// `.env*` ignored. Honouring the ignore rules found only the example,
+/// compared it against nothing, and reported `in sync` at exit 0 — this
+/// tool's whole product, answered wrongly, on the layout its own README
+/// opens with.
+#[test]
+fn a_gitignored_dotenv_is_still_compared() {
+    let tree = Tree::new("gitignored");
+    tree.write(".gitignore", ".env\n.env.production\n");
+    tree.write(".git/HEAD", "ref: refs/heads/main\n");
+    tree.write(".env.example", "DATABASE_URL=\nSTRIPE_KEY=\nSENTRY_DSN=\n");
+    tree.write(".env", "DATABASE_URL=x\nDEBUG=1\n");
+    tree.write(".env.production", "DATABASE_URL=x\nSTRIPE_KEY=y\n");
+
+    let run = run(&[
+        "--template",
+        &tree.path().join(".env.example").to_string_lossy(),
+        &tree.path().to_string_lossy(),
+    ]);
+    assert_eq!(run.code, 1, "{}{}", run.stdout, run.stderr);
+    let report = report(&run);
+    assert_eq!(report["summary"]["files"], 3, "{}", run.stdout);
+    assert!(
+        report["missingKeys"]
+            .as_array()
+            .expect("missingKeys")
+            .iter()
+            .any(|entry| entry["filepath"] == ".env.production"),
+        "{}",
+        run.stdout
+    );
+
+    // Files, not entries: `.env` misses two keys and holds one extra,
+    // which used to make the line read "3 files with mismatches".
+    assert!(
+        run.stderr
+            .contains("2 files with mismatches across 3 files"),
+        "{}",
+        run.stderr
+    );
+}

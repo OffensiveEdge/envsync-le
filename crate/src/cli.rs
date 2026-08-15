@@ -33,7 +33,9 @@ Options:
   --ignore-case        compare key names case-insensitively
   --exclude <glob>     skip files matching this pattern; repeatable
   --hidden             descend hidden directories too
-  --no-ignore          walk files that .gitignore excludes
+  --no-ignore          accepted and now the default: a dotenv file is
+                       git-ignored by design, so honouring the ignore
+                       rules found nothing and reported it as in sync
 
 A file that is not text, or that cannot be opened, is named in the
 diagnostics and left out of the comparison rather than aborting it — a
@@ -202,14 +204,34 @@ fn summarise(report: &Report) {
         _ => writeln!(
             stderr,
             "out of sync — {} across {}",
+            // **Files, not entries.** `missing + extra` counts findings:
+            // one file missing two keys and holding one extra is three,
+            // and the line then read "3 files with mismatches across 3
+            // files" for a single bad file. Counted by distinct path.
             plural(
-                report.summary.missing + report.summary.extra,
+                files_with_mismatches(report),
                 "file with mismatches",
                 "files with mismatches"
             ),
             plural(report.summary.files, "file", "files")
         ),
     };
+}
+
+/// How many distinct files carry a mismatch of either kind.
+fn files_with_mismatches(report: &Report) -> usize {
+    let mut seen: Vec<&str> = Vec::new();
+    for path in report
+        .missing_keys
+        .iter()
+        .map(|entry| entry.file.as_str())
+        .chain(report.extra_keys.iter().map(|entry| entry.file.as_str()))
+    {
+        if !seen.contains(&path) {
+            seen.push(path);
+        }
+    }
+    seen.len()
 }
 
 fn plural(count: usize, one: &str, many: &str) -> String {
