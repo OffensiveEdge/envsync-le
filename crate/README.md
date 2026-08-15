@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/nolindnaidoo/envsync-le/main/src/assets/images/icon.png" alt="envsync-le logo" width="96" height="96"/>
+</p>
+
 <h1 align="center">envsync-le</h1>
 
 <p align="center">

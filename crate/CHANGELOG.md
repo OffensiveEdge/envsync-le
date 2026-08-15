@@ -7,6 +7,23 @@ this repository release on their own cadence.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-08-15
+
+### Fixed
+
+- **The crates.io page shows the icon.** It lived only in the repository
+  README, and that file is not the one `cargo publish` ships — the
+  published README is this directory's. A relative path would not have
+  fixed it: the crate is published from `crate/`, so crates.io resolves
+  a relative link against `path_in_vcs` and looks for the asset below
+  the crate directory rather than beside it. The image is an absolute
+  URL, which every surface renders.
+
+  No demo goes with it. `src/assets/images/demo.gif` records the
+  extension reading an editor buffer, which is not what this binary
+  does; the demo that belongs here is a recording of the CLI, and there
+  is not one yet.
+
 ## [0.1.1] - 2026-08-14
 
 ### Fixed
@@ -118,5 +135,6 @@ classification reads them.
   vanish from the report entirely, which reads to whoever ran it as
   "that file was clean".
 
+[0.1.2]: https://crates.io/crates/envsync-le/0.1.2
 [0.1.1]: https://crates.io/crates/envsync-le/0.1.1
 [0.1.0]: https://crates.io/crates/envsync-le/0.1.0
