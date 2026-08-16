@@ -179,8 +179,14 @@ fn union_of(files: &[EnvFile]) -> Vec<String> {
 /// more than a base name must match that much of the tail, so
 /// `config/.env.example` does not answer for `other/.env.example`.
 fn same_file(discovered: &str, named: &str) -> bool {
-    let discovered = discovered.trim_start_matches("./");
-    let named = named.trim_start_matches("./");
+    // **Both separators, always — not `std::path::MAIN_SEPARATOR`.** The
+    // discovered path is built by the walk and the named one is whatever
+    // was typed, so a Windows run compares a `\\` path against a `/` one
+    // and the boundary test has to accept either. Keying on the host's
+    // separator failed the template match on Windows only: the template
+    // was then counted as an ordinary file and the mismatch tally moved.
+    let discovered = strip_leading_dot(discovered);
+    let named = strip_leading_dot(named);
     if discovered == named {
         return true;
     }
@@ -191,7 +197,11 @@ fn same_file(discovered: &str, named: &str) -> bool {
         (named, discovered)
     };
     long.strip_suffix(short)
-        .is_some_and(|prefix| prefix.is_empty() || prefix.ends_with('/'))
+        .is_some_and(|prefix| prefix.is_empty() || prefix.ends_with(['/', '\\']))
+}
+
+fn strip_leading_dot(path: &str) -> &str {
+    path.trim_start_matches("./").trim_start_matches(".\\")
 }
 
 fn find_missing(files: &[EnvFile], reference: &[String], case_sensitive: bool) -> Vec<Mismatch> {
@@ -296,6 +306,24 @@ mod same_file_tests {
         assert!(same_file(".env.example", "/abs/path/.env.example"));
         assert!(same_file("sub/.env", "sub/.env"));
         assert!(same_file("sub/.env", "/abs/sub/.env"));
+    }
+
+    /// **Windows spells the template with backslashes.** The walk builds
+    /// the discovered path and the caller types the template, so a
+    /// Windows run compares the two separators against each other. Only
+    /// `/` was accepted on the boundary, so the template matched nothing,
+    /// was counted as an ordinary file, and the mismatch tally moved —
+    /// green on three platforms and red on the fourth.
+    #[test]
+    fn a_template_matches_across_either_separator() {
+        assert!(same_file(
+            ".env.example",
+            r"C:\Users\dev\project\.env.example"
+        ));
+        assert!(same_file(".env.example", r".\.env.example"));
+        assert!(same_file(r"sub\.env", r"C:\abs\sub\.env"));
+        // The boundary rule still holds with the other separator.
+        assert!(!same_file(".env.example", r"C:\dev\my.env.example"));
     }
 
     /// A suffix must land on a component boundary, or `.env.example`
