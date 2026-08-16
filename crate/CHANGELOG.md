@@ -7,6 +7,17 @@ this repository release on their own cadence.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-08-16
+
+### Fixed
+
+- **A template is matched across either path separator.** `same_file`
+  accepted a component boundary only at `/`, so on Windows the typed
+  template — an absolute path with backslashes — matched no discovered
+  file. It was then treated as an ordinary file, the reference fell back
+  to the union, and the mismatch tally moved. Green on Linux and macOS,
+  red on Windows, from a rule that reads as platform-neutral.
+
 ## [0.2.0] - 2026-08-15
 
 The exit code is this tool's product, and two defects made it answer
